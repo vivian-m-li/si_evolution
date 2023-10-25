@@ -3,6 +3,7 @@ rm(list = ls())
 #ptm <- proc.time()
 require(ggplot2)
 require(gridExtra)
+source("analyze.R")
 
 # # assumptions (parameters in function below):
 # Ni = 500, # number of individuals
@@ -13,7 +14,7 @@ require(gridExtra)
 # # the jumpiness trait determines an individual's probability of: randomly fleeing (NOT due to a real threat, i.e., a false alarm) AND an individual's probability of detecting an attacking predator. As a first pass, let's simply make the false alarm probability much lower than the response to predators probability. Perhaps 10-20% of the response to predators probability:
 # ######################### CAN CUT THIS (repeated in code below)
 # coef_false = 0.20,
-# f_pred = runif(Ni, min=0, max=1), # using uniform distribution to constrain sampling bewteen 0 and 1
+# f_pred = runif(Ni, min=0, max=1), # using uniform distribution to constrain sampling between 0 and 1
 # # the 'social faith' parm is an intercept term that represents the probability that a given individual will flee in a time step, given that another individual in the group fled. We can make the ordering of individuals random, so that we don't make it consistently less or more likely that certain individuals will flee
 # s_faith = runif(Ni, min=0, max=0.5),
 # s_dd = runif(Ni, min=-2, max=2),
@@ -21,7 +22,6 @@ require(gridExtra)
 # fit = matrix(NA, ncol=tf,nrow=Ni),
 # fit[ , 1] = 1, # setting fitness of all individuals at the start at 1
 # maxf = 100 # number of generations to run the model through
-
 
 
 evo.fun1 <- function(Ni = 100, tf = 30, e_gain = 1, coef_false = 0.20, maxf = 100, prob_pred = 0.2, max_group_size = 25) {
@@ -202,40 +202,3 @@ evo.fun1 <- function(Ni = 100, tf = 30, e_gain = 1, coef_false = 0.20, maxf = 10
   
   return(out_ls)
 }
-
-maxf0 <- 500
-max_groups <- c(5, 10, 20)
-
-test <- evo.fun1(maxf = maxf0)
-
-g1 <- evo.fun1(max_group_size = max_groups[1], maxf = maxf0)
-g2 <- evo.fun1(max_group_size = max_groups[2], maxf = maxf0)
-# g3 <- evo.fun1(max_group_size = max_groups[3], maxf = maxf0)
-#  
-# sub1 <- data.frame(max_group_size = max_groups, soc_mean = c(mean(g1[[2]][which(g1[[2]][ , "generation"] == maxf), "trait_mean"]), mean(g2[[2]][which(g2[[2]][ , "generation"] == maxf), "trait_mean"]), mean(g3[[2]][which(g3[[2]][ , "generation"] == maxf), "trait_mean"])),
-# 	soc_lb = c(mean(g1[[2]][which(g1[[2]][ , "generation"] == maxf), "lb"]), mean(g2[[2]][which(g2[[2]][ , "generation"] == maxf), "lb"]), mean(g3[[2]][which(g3[[2]][ , "generation"] == maxf), "lb"])),
-# 	soc_ub = c(mean(g1[[2]][which(g1[[2]][ , "generation"] == maxf), "ub"]), mean(g2[[2]][which(g2[[2]][ , "generation"] == maxf), "ub"]), mean(g3[[2]][which(g3[[2]][ , "generation"] == maxf), "ub"])))
-# 	
-# dev.new();
-# with(sub1, plot(soc_mean ~ max_group_size, ylim = c(min(sub1$soc_lb), max(sub1$soc_ub))))
-# with(sub1, points(soc_lb ~ max_group_size, pch = "-"))
-# with(sub1, points(soc_ub ~ max_group_size, pch = "-"))
-
-
-
-# ptm <- proc.time()
-# 
-# lopred1 <- evo.fun1(prob_pred = 0.2, maxf = 1000)
-# lopred2 <- evo.fun1(prob_pred = 0.2, maxf = 1000)
-# lopred3 <- evo.fun1(prob_pred = 0.2, maxf = 1000)
-# lopred4 <- evo.fun1(prob_pred = 0.2, maxf = 1000)
-# lopred5 <- evo.fun1(prob_pred = 0.2, maxf = 1000)
-# 
-# mdpred1 <- evo.fun1(prob_pred = 0.4, maxf = 1000)
-# mdpred2 <- evo.fun1(prob_pred = 0.4, maxf = 1000)
-# mdpred3 <- evo.fun1(prob_pred = 0.4, maxf = 1000)
-# mdpred4 <- evo.fun1(prob_pred = 0.4, maxf = 1000)
-# mdpred5 <- evo.fun1(prob_pred = 0.4, maxf = 1000)
-# 
-# proc.time() - ptm
-
