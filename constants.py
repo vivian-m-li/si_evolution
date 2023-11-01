@@ -1,8 +1,7 @@
+import matplotlib.cm as cm
 from si_types import *
 
 out_file_path = "results"
-# sim analysis file
-# add a csv for each sim analysis
 
 DEFAULT_PARAMS = Parameters(
     Ni=100,  # number of individuals
@@ -13,3 +12,7 @@ DEFAULT_PARAMS = Parameters(
     prob_pred=0.2,
     max_group_size=25,
 )
+
+GROUP_BIN_SIZE = 5
+
+COLOR_MAP = cm.Set2.colors

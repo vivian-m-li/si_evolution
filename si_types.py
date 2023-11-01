@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 
 @dataclass
@@ -38,3 +38,9 @@ class SimOutput:
 class Flights:
     false_true_flights: int
     total_flights: int
+
+
+@dataclass
+class Results:
+    freq_false_flights_binned: List[List[Optional[float]]]
+    freq_true_flights_binned: List[List[Optional[float]]]

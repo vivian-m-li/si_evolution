@@ -1,7 +1,41 @@
 import os
 import csv
 import pandas as pd
+import ast
+from plot import *
 from si_types import *
+from constants import *
+from collections import defaultdict
+from typing import Optional, List, DefaultDict, Any
+
+
+def eval_int_float(x):
+    if type(x) != str:
+        return x
+    if "." not in x or x.endswith(".0"):
+        return int(float(x))
+    if "." in x:
+        return float(x)
+    return x
+
+
+def cast_data_types(row: List[str]) -> List[Any]:
+    data = []
+    for x in row:
+        try:
+            value = ast.literal_eval(x)
+            if isinstance(value, dict):
+                data.append(value)
+            else:
+                data.append(eval_int_float(x))
+        except (ValueError, SyntaxError):
+            try:
+                data.append(eval_int_float(x))
+            except Exception:
+                import pdb
+
+                pdb.set_trace()
+    return data
 
 
 def get_sim_id(file_name: str) -> int:
@@ -82,3 +116,118 @@ def write_output(directory: str, sim_id: int, output: SimOutput):
     writer_object.writerows(sim_results)
 
     sim_file.close()
+
+
+def get_outputs(out_file_path: str, params: Optional[Parameters]) -> List[pd.DataFrame]:
+    sims = []
+
+    all_sims_file = open(f"{out_file_path}/all.csv", "r")
+    reader_object = csv.reader(all_sims_file, delimiter=",")
+    next(reader_object)
+    for row in reader_object:
+        (
+            sim_id,
+            Ni,
+            tf,
+            e_gain,
+            coef_false,
+            maxf,
+            prob_pred,
+            max_group_size,
+        ) = cast_data_types(row)
+        if params is not None and (
+            params.Ni != Ni
+            or params.tf != tf
+            or params.e_gain != e_gain
+            or params.coef_false != coef_false
+            or params.maxf != maxf
+            or params.prob_pred != prob_pred
+            or params.max_group_size != max_group_size
+        ):
+            continue
+        df = pd.read_csv(f"{out_file_path}/{sim_id}.csv").to_numpy()
+        sims.append(df)
+
+    all_sims_file.close()
+
+    return sims
+
+
+def process_results(sim_outputs: List[pd.DataFrame], params: Parameters) -> Results:
+    num_generations = params.maxf
+
+    freq_false_flight_by_group_size: List[DefaultDict[int, List[float]]] = []
+    freq_true_flight_by_group_size: List[DefaultDict[int, List[float]]] = []
+    for i in range(num_generations):
+        freq_false_flight_by_group_size.append(defaultdict(list))
+        freq_true_flight_by_group_size.append(defaultdict(list))
+        for sim in sim_outputs:
+            (
+                gen,
+                total_deaths,
+                freq_false_flights,
+                freq_true_flights,
+                freq_detected_pred_deaths,
+                freq_nondetected_pred_deaths,
+                group_size_mean,
+                group_size_var,
+                energetic_states_mean,
+                energetic_states_var,
+                f_pred_mean,
+                f_pred_var,
+                s_faith_mean,
+                s_faith_var,
+                s_dd_mean,
+                s_dd_var,
+            ) = cast_data_types(sim[i])
+            for group_size, freq_false_flight in freq_false_flights.items():
+                freq_false_flight_by_group_size[-1][group_size].append(
+                    freq_false_flight
+                )
+            for group_size, freq_true_flight in freq_true_flights.items():
+                freq_true_flight_by_group_size[-1][group_size].append(freq_true_flight)
+
+    # TODO: analyze across simulations
+    # TODO: populate this
+    freq_false_flights_unbinned: List[float]
+    freq_true_flights_unbinned: List[float]
+    freq_false_flights_binned: List[List[Optional[float]]] = []
+    freq_true_flights_binned: List[List[Optional[float]]] = []
+    for i in range(num_generations):
+        freq_false_flights_binned.append([])
+        freq_true_flights_binned.append([])
+        all_false_flights = freq_false_flight_by_group_size[i]
+        all_true_flights = freq_true_flight_by_group_size[i]
+
+        for j in range(1, params.max_group_size + 1, GROUP_BIN_SIZE):
+            freq_false_flights = []
+            freq_true_flights = []
+            for group_size in range(j, j + GROUP_BIN_SIZE):
+                if group_size in all_false_flights:
+                    freq_false_flights.extend(all_false_flights[group_size])
+                if group_size in all_true_flights:
+                    freq_true_flights.extend(all_true_flights[group_size])
+
+            freq_false_flights_binned[-1].append(
+                None
+                if len(freq_false_flights) == 0
+                else sum(freq_false_flights) / len(freq_false_flights)
+            )
+            freq_true_flights_binned[-1].append(
+                None
+                if len(freq_true_flights) == 0
+                else sum(freq_true_flights) / len(freq_true_flights)
+            )
+
+    return Results(freq_false_flights_binned, freq_true_flights_binned)
+
+
+def mult_sim_analysis(
+    *, out_file_path: str, params: Optional[Parameters], plots: List[str]
+) -> None:
+    sim_outputs = get_outputs(out_file_path, params)
+    results = process_results(sim_outputs, params)
+
+    if "flight_freq_by_group_size" in plots:
+        plot_false_flight_freq(results, params)
+        plot_true_flight_freq(results, params)
