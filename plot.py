@@ -4,7 +4,10 @@ from constants import *
 
 
 def plot_flight_freq_by_group_size(
-    flights_binned: List[List[Optional[float]]], params: Parameters, flight_type: str
+    flights_binned: List[List[Optional[float]]],
+    flights_unbinned: List[float],
+    params: Parameters,
+    flight_type: str,
 ) -> None:
     plt.figure(figsize=(10, 6))
 
@@ -18,6 +21,7 @@ def plot_flight_freq_by_group_size(
             label=f"{bin_lower_bound + 1}-{bin_lower_bound + GROUP_BIN_SIZE}",
             color=COLOR_MAP[bin_idx],
         )
+    plt.plot(x, flights_unbinned, label="All group sizes", color="#555555")
 
     plt.legend(title="Group Size", loc="upper right")
     plt.title(f"Frequency of {flight_type} Flights Across Generations")
@@ -26,8 +30,12 @@ def plot_flight_freq_by_group_size(
 
 
 def plot_false_flight_freq(r: Results, params: Parameters) -> None:
-    plot_flight_freq_by_group_size(r.freq_false_flights_binned, params, "False")
+    plot_flight_freq_by_group_size(
+        r.freq_false_flights_binned, r.freq_false_flights_unbinned, params, "False"
+    )
 
 
 def plot_true_flight_freq(r: Results, params: Parameters) -> None:
-    plot_flight_freq_by_group_size(r.freq_true_flights_binned, params, "True")
+    plot_flight_freq_by_group_size(
+        r.freq_true_flights_binned, r.freq_true_flights_unbinned, params, "True"
+    )

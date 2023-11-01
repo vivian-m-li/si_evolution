@@ -46,3 +46,5 @@ class Flights:
 class Results:
     freq_false_flights_binned: List[List[Optional[float]]]
     freq_true_flights_binned: List[List[Optional[float]]]
+    freq_false_flights_unbinned: List[float]
+    freq_true_flights_unbinned: List[float]

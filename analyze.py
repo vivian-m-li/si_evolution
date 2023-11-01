@@ -200,6 +200,8 @@ def process_results(sim_outputs: List[pd.DataFrame], params: Parameters) -> Resu
                 group_size_var,
                 energetic_states_mean,
                 energetic_states_var,
+                fitness_mean,
+                fitness_var,
                 f_pred_mean,
                 f_pred_var,
                 s_faith_mean,
@@ -214,26 +216,32 @@ def process_results(sim_outputs: List[pd.DataFrame], params: Parameters) -> Resu
             for group_size, freq_true_flight in freq_true_flights.items():
                 freq_true_flight_by_group_size[-1][group_size].append(freq_true_flight)
 
-    # TODO: analyze across simulations
-    # TODO: populate this
-    freq_false_flights_unbinned: List[float]
-    freq_true_flights_unbinned: List[float]
+    freq_false_flights_unbinned: List[float] = []
+    freq_true_flights_unbinned: List[float] = []
     freq_false_flights_binned: List[List[Optional[float]]] = []
     freq_true_flights_binned: List[List[Optional[float]]] = []
     for i in range(num_generations):
         freq_false_flights_binned.append([])
         freq_true_flights_binned.append([])
-        all_false_flights = freq_false_flight_by_group_size[i]
-        all_true_flights = freq_true_flight_by_group_size[i]
+        all_false_flights_by_group = freq_false_flight_by_group_size[i]
+        all_true_flights_by_group = freq_true_flight_by_group_size[i]
+
+        all_false_flights = [x for y in all_false_flights_by_group.values() for x in y]
+        all_true_flights = [x for y in all_true_flights_by_group.values() for x in y]
+
+        freq_false_flights_unbinned.append(
+            sum(all_false_flights) / len(all_false_flights)
+        )
+        freq_true_flights_unbinned.append(sum(all_true_flights) / len(all_true_flights))
 
         for j in range(1, params.max_group_size + 1, GROUP_BIN_SIZE):
             freq_false_flights = []
             freq_true_flights = []
             for group_size in range(j, j + GROUP_BIN_SIZE):
-                if group_size in all_false_flights:
-                    freq_false_flights.extend(all_false_flights[group_size])
-                if group_size in all_true_flights:
-                    freq_true_flights.extend(all_true_flights[group_size])
+                if group_size in all_false_flights_by_group:
+                    freq_false_flights.extend(all_false_flights_by_group[group_size])
+                if group_size in all_true_flights_by_group:
+                    freq_true_flights.extend(all_true_flights_by_group[group_size])
 
             freq_false_flights_binned[-1].append(
                 None
@@ -246,7 +254,12 @@ def process_results(sim_outputs: List[pd.DataFrame], params: Parameters) -> Resu
                 else sum(freq_true_flights) / len(freq_true_flights)
             )
 
-    return Results(freq_false_flights_binned, freq_true_flights_binned)
+    return Results(
+        freq_false_flights_binned,
+        freq_true_flights_binned,
+        freq_false_flights_unbinned,
+        freq_true_flights_unbinned,
+    )
 
 
 def mult_sim_analysis(
