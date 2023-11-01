@@ -23,6 +23,7 @@ class Stat:
 class SimOutput:
     parameters: Parameters
     total_deaths: List[int]  # per generation
+    # TODO modify these flight vals
     false_flights: List[Dict[int, float]]  # per generation, per group size
     true_flights: List[Dict[int, float]]  # per generation, per group size
     detected_pred_deaths: List[int]  # per generation
@@ -31,6 +32,7 @@ class SimOutput:
         List[Stat]
     ]  # per generation - list of stats for f_pred, s_faith, s_dd
     energetic_states: List[Stat]  # per generation
+    fitness: List[Stat]  # per generation
     group_size: List[Stat]  # per generation
 
 

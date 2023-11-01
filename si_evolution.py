@@ -90,6 +90,7 @@ def init_outputs(params: Parameters) -> SimOutput:
         nondetected_pred_deaths=[],
         trait_values=[],
         energetic_states=[],
+        fitness=[],
         group_size=[],
     )
 
@@ -160,7 +161,7 @@ def evo_fun(
         group_sizes: List[int] = []
         false_flights_by_group_size: DefaultDict[int, int] = defaultdict(lambda: 0)
         true_flights_by_group_size: DefaultDict[int, int] = defaultdict(lambda: 0)
-        total_flights = 0
+        total_flights_by_group_size: DefaultDict[int, int] = defaultdict(lambda: 0)
         for t in range(1, tf):
             num_groups, groups_df = assign_groups(Ni, max_group_size)
             group_sizes.append(Ni / num_groups)
@@ -204,7 +205,7 @@ def evo_fun(
 
                         if flee == 1:
                             fit[ii, t] = fit[ii, t - 1]
-                            total_flights += 1
+                            total_flights_by_group_size[ddensity] += 1
                             if pred == 1:
                                 false_flights_by_group_size[ddensity] += 1
                             else:
@@ -263,13 +264,13 @@ def evo_fun(
         output.group_size.append(calc_stat(group_sizes))
         output.false_flights.append(
             {
-                group_size: num_flights / total_flights
+                group_size: num_flights / total_flights_by_group_size[group_size]
                 for group_size, num_flights in false_flights_by_group_size.items()
             }
         )
         output.true_flights.append(
             {
-                group_size: num_flights / total_flights
+                group_size: num_flights / total_flights_by_group_size[group_size]
                 for group_size, num_flights in true_flights_by_group_size.items()
             }
         )
@@ -284,15 +285,17 @@ def evo_fun(
         survive = survive0[survive0["fit"] > 0]
         fit_traits_gen.append(survive.copy())
 
+        energetic_states = calc_stat(survive0.iloc[:, 0].to_numpy())
+        output.energetic_states.append(energetic_states)
+        fitness_stat = calc_stat(survive.iloc[:, 0].to_numpy())
+        output.fitness.append(fitness_stat)
+
         survive["fit"] = survive["fit"] / np.sum(survive["fit"])
 
         surv_df = pd.DataFrame(survive)
         surv_df["index"] = range(len(surv_df["fit"]))
         f_index = np.random.choice(surv_df["index"], Ni, p=surv_df["fit"])
         f_all.append(survive.iloc[f_index, 1:4])
-
-        energetic_states = calc_stat(survive0.iloc[:, 0].to_numpy())
-        output.energetic_states.append(energetic_states)
 
         for lst, op in [(trait_mean, np.mean), (trait_sd, np.std), (trait_var, np.var)]:
             lst[f, :] = [

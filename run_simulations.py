@@ -6,15 +6,24 @@ from multiprocessing import Pool
 from si_evolution import evo_fun
 from analyze import get_sim_id
 from constants import DEFAULT_PARAMS, out_file_path
+from typing import Optional
 
 
-def run_sim_batch(start_sim_id: int, num_sims: int):
+def run_sim_batch(start_sim_id: int, num_sims: int, start_time: Optional[float]):
     params = DEFAULT_PARAMS
     for i in range(start_sim_id, start_sim_id + num_sims):
+        start = time.time()
         evo_fun(out_file_path, params, sim_id=i)
+        end = time.time()
+        if i == start_sim_id and start_time is not None:
+            sim_runtime = end - start
+            total_runtime = start_time + (sim_runtime * num_sims)
+            print(
+                f"Estimated completion time: {time.strftime('%H:%M:%S', time.localtime(total_runtime))}"
+            )
 
 
-def run_si_evolution_sims(num_simulations: int):
+def run_si_evolution_sims(start_time: float, num_simulations: int):
     cpu_count = multiprocessing.cpu_count()
     p = Pool(cpu_count)
     args = []
@@ -30,7 +39,8 @@ def run_si_evolution_sims(num_simulations: int):
         curr_batch_size = (
             batch_size if i < num_simulations % cpu_count else batch_size - 1
         )
-        args.append((start_sim_id, curr_batch_size))
+        print_estimate = start_time if i == 0 else None
+        args.append((start_sim_id, curr_batch_size, print_estimate))
         start_sim_id += curr_batch_size
     p.starmap(run_sim_batch, args)
     p.close()
@@ -44,7 +54,7 @@ if __name__ == "__main__":
     start = time.time()
 
     num_simulations = 100
-    run_si_evolution_sims(num_simulations)
+    run_si_evolution_sims(start, num_simulations)
 
     end = time.time()
 

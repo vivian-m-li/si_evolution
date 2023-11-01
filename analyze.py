@@ -39,6 +39,9 @@ def cast_data_types(row: List[str]) -> List[Any]:
 
 
 def get_sim_id(file_name: str) -> int:
+    if not os.path.isfile(file_name):
+        return 0
+
     df = pd.read_csv(file_name)
     df.dropna(axis=0, how="all", inplace=True)
     df.to_csv(file_name, index=False)
@@ -50,8 +53,28 @@ def get_sim_id(file_name: str) -> int:
     return sim_id
 
 
+def write_new_all_file(file_name):
+    results_file = open(file_name, "w")
+    writer_object = csv.writer(results_file, lineterminator="\n")
+    writer_object.writerow(
+        [
+            "id",
+            "Ni",
+            "tf",
+            "e_gain",
+            "coef_false",
+            "maxf",
+            "prob_pred",
+            "max_group_size",
+        ]
+    )
+    results_file.close()
+
+
 def write_output(directory: str, sim_id: int, output: SimOutput):
     results_file_name = f"{directory}/all.csv"
+    if not os.path.isfile(results_file_name):
+        write_new_all_file(results_file_name)
 
     results_file = open(results_file_name, "a")
     writer_object = csv.writer(results_file, lineterminator="\n")
@@ -82,6 +105,8 @@ def write_output(directory: str, sim_id: int, output: SimOutput):
         "group_size_var",
         "energetic_states_mean",
         "energetic_states_var",
+        "fitness_mean",
+        "fitness_var",
         "f_pred_mean",
         "f_pred_var",
         "s_faith_mean",
@@ -105,6 +130,8 @@ def write_output(directory: str, sim_id: int, output: SimOutput):
                 output.group_size[g].variance,
                 output.energetic_states[g].mean,
                 output.energetic_states[g].variance,
+                output.fitness[g].mean,
+                output.fitness[g].variance,
                 output.trait_values[g][0].mean,
                 output.trait_values[g][0].variance,
                 output.trait_values[g][1].mean,
