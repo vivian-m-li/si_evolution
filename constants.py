@@ -13,6 +13,6 @@ DEFAULT_PARAMS = Parameters(
     max_group_size=25,
 )
 
-GROUP_BIN_SIZE = 5
+GROUP_BIN_SIZE = 10
 
-COLOR_MAP = cm.Set2.colors
+COLOR_MAP = [x for y in [cm.Set2.colors, cm.Set1.colors] for x in y]

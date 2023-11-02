@@ -1,6 +1,7 @@
 import os
 import csv
 import pandas as pd
+import numpy as np
 import ast
 from plot import *
 from si_types import *
@@ -185,9 +186,12 @@ def process_results(sim_outputs: List[pd.DataFrame], params: Parameters) -> Resu
 
     freq_false_flight_by_group_size: List[DefaultDict[int, List[float]]] = []
     freq_true_flight_by_group_size: List[DefaultDict[int, List[float]]] = []
+    fitness_stat: List[Stat] = []
     for i in range(num_generations):
         freq_false_flight_by_group_size.append(defaultdict(list))
         freq_true_flight_by_group_size.append(defaultdict(list))
+        fitness_means: List[float] = []
+        fitness_vars: List[float] = []
         for sim in sim_outputs:
             (
                 gen,
@@ -209,12 +213,24 @@ def process_results(sim_outputs: List[pd.DataFrame], params: Parameters) -> Resu
                 s_dd_mean,
                 s_dd_var,
             ) = cast_data_types(sim[i])
+            fitness_means.append(fitness_mean)
+            fitness_vars.append(fitness_var)
             for group_size, freq_false_flight in freq_false_flights.items():
                 freq_false_flight_by_group_size[-1][group_size].append(
                     freq_false_flight
                 )
+                if freq_false_flight == 1:
+                    freq_true_flight_by_group_size[-1][group_size].append(0)
             for group_size, freq_true_flight in freq_true_flights.items():
                 freq_true_flight_by_group_size[-1][group_size].append(freq_true_flight)
+                if freq_true_flight == 1:
+                    freq_false_flight_by_group_size[-1][group_size].append(0)
+        fitness_stat.append(
+            Stat(
+                mean=sum(fitness_means) / len(fitness_means),
+                variance=np.var(fitness_vars),
+            )
+        )
 
     freq_false_flights_unbinned: List[float] = []
     freq_true_flights_unbinned: List[float] = []
@@ -259,6 +275,7 @@ def process_results(sim_outputs: List[pd.DataFrame], params: Parameters) -> Resu
         freq_true_flights_binned,
         freq_false_flights_unbinned,
         freq_true_flights_unbinned,
+        fitness_stat,
     )
 
 
@@ -271,3 +288,6 @@ def mult_sim_analysis(
     if "flight_freq_by_group_size" in plots:
         plot_false_flight_freq(results, params)
         plot_true_flight_freq(results, params)
+
+    if "fitness" in plots:
+        plot_fitness(results)
