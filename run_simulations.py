@@ -11,6 +11,8 @@ from typing import Optional
 
 def run_sim_batch(start_sim_id: int, num_sims: int, start_time: Optional[float]):
     params = DEFAULT_PARAMS
+    params.max_group_size = 50
+    params.Ni = 500
     for i in range(start_sim_id, start_sim_id + num_sims):
         start = time.time()
         evo_fun(out_file_path, params, sim_id=i)
@@ -31,13 +33,14 @@ def run_si_evolution_sims(start_time: float, num_simulations: int):
     start_sim_id = get_sim_id(f"{out_file_path}/all.csv")
 
     batch_size = math.ceil(num_simulations / cpu_count)
-    num_simulations % cpu_count
     for i in range(cpu_count):
         if i + 1 > num_simulations:
             break
 
         curr_batch_size = (
-            batch_size if i < num_simulations % cpu_count else batch_size - 1
+            batch_size
+            if (num_simulations % cpu_count == 0 or i < num_simulations % cpu_count)
+            else batch_size - 1
         )
         print_estimate = start_time if i == 0 else None
         args.append((start_sim_id, curr_batch_size, print_estimate))
@@ -53,7 +56,7 @@ if __name__ == "__main__":
     print(f"Starting simulations at {current_time}")
     start = time.time()
 
-    num_simulations = 100
+    num_simulations = 10
     run_si_evolution_sims(start, num_simulations)
 
     end = time.time()
