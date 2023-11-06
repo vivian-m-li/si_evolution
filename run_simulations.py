@@ -6,13 +6,13 @@ from multiprocessing import Pool
 from si_evolution import evo_fun
 from analyze import get_sim_id
 from constants import DEFAULT_PARAMS, out_file_path
-from typing import Optional
+from si_types import Parameters
+from typing import Optional, List
 
 
-def run_sim_batch(start_sim_id: int, num_sims: int, start_time: Optional[float]):
-    params = DEFAULT_PARAMS
-    params.max_group_size = 50
-    params.Ni = 500
+def run_sim_batch(
+    start_sim_id: int, num_sims: int, params: Parameters, start_time: Optional[float]
+):
     for i in range(start_sim_id, start_sim_id + num_sims):
         start = time.time()
         evo_fun(out_file_path, params, sim_id=i)
@@ -25,7 +25,7 @@ def run_sim_batch(start_sim_id: int, num_sims: int, start_time: Optional[float])
             )
 
 
-def run_si_evolution_sims(start_time: float, num_simulations: int):
+def run_si_evolution_sims(start_time: float, params: Parameters, num_simulations: int):
     cpu_count = multiprocessing.cpu_count()
     p = Pool(cpu_count)
     args = []
@@ -43,9 +43,9 @@ def run_si_evolution_sims(start_time: float, num_simulations: int):
             else batch_size - 1
         )
         print_estimate = start_time if i == 0 else None
-        args.append((start_sim_id, curr_batch_size, print_estimate))
+        args.append((start_sim_id, curr_batch_size, params, print_estimate))
         start_sim_id += curr_batch_size
-    p.starmap(run_sim_batch, args)
+        p.starmap(run_sim_batch, args)
     p.close()
     p.join()
 
@@ -56,11 +56,23 @@ if __name__ == "__main__":
     print(f"Starting simulations at {current_time}")
     start = time.time()
 
-    num_simulations = 10
-    run_si_evolution_sims(start, num_simulations)
+    num_simulations = 1
+    sim_params = [
+        DEFAULT_PARAMS,
+        Parameters(max_group_size=15),
+        Parameters(max_group_size=50),
+        Parameters(max_group_size=50, Ni=500),
+    ]
+    for i, params in enumerate(sim_params):
+        param_start = time.time()
+        run_si_evolution_sims(param_start, params, num_simulations)
+        now = datetime.datetime.now()
+        print(
+            f"Finished {num_simulations} simulations for {(i+1)}/{len(sim_params)} parameters at {now.strftime('%H:%M:%S')}"
+        )
 
     end = time.time()
 
     print(
-        f"Total amount of time to run {num_simulations} simulations: {datetime.timedelta(seconds = end - start)}"
+        f"Total amount of time to run {len(sim_params) * num_simulations} simulations: {datetime.timedelta(seconds = end - start)}"
     )

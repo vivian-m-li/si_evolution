@@ -231,7 +231,6 @@ def evo_fun(
                                 eaten_nodetect = random_binomial(peaten_nodetect)
                                 eaten_nodetect_vec.append(eaten_nodetect)
 
-                            # here
                             if eaten_detect == 1 or eaten_nodetect == 1:
                                 fit[ii, t] = 0
                                 # per generation?

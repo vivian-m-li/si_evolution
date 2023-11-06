@@ -4,13 +4,13 @@ from typing import List, Dict, Optional
 
 @dataclass
 class Parameters:
-    Ni: int
-    tf: int
-    e_gain: int
-    coef_false: float
-    maxf: int
-    prob_pred: float
-    max_group_size: int
+    Ni: int = 100  # number of individuals
+    tf: int = 30  # time steps for a given generation
+    e_gain: int = 1  # energy units gained each time step in which the ith individual does not flee
+    coef_false: float = 0.2  # coefficient that determines the prob of a false alarm (a smaller value than f_pred)
+    maxf: int = 500  # number of generations to run the model through
+    prob_pred: float = 0.2
+    max_group_size: int = 25
 
 
 @dataclass
@@ -23,7 +23,6 @@ class Stat:
 class SimOutput:
     parameters: Parameters
     total_deaths: List[int]  # per generation
-    # TODO modify these flight vals
     false_flights: List[Dict[int, float]]  # per generation, per group size
     true_flights: List[Dict[int, float]]  # per generation, per group size
     detected_pred_deaths: List[int]  # per generation
@@ -49,3 +48,10 @@ class Results:
     freq_false_flights_unbinned: List[float]
     freq_true_flights_unbinned: List[float]
     fitness_stat: List[Stat]
+    trait_values: List[List[Stat]]
+
+
+@dataclass
+class GroupStats:
+    means: List[float]
+    vars: List[float]
