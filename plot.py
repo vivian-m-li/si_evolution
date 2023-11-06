@@ -43,14 +43,31 @@ def plot_true_flight_freq(r: Results, params: Parameters) -> None:
     )
 
 
-def plot_mean_trait_values(trait: str) -> None:
-    return
+def plot_mean_trait_values(trait: str, values: List[Stat]) -> None:
+    x = list(range(1, len(values) + 1))
+    y = [x.mean for x in values]
+    y_err = [x.variance for x in values]
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(x, y)
+    # plt.errorbar(
+    #     x,
+    #     y,
+    #     yerr=y_err,
+    #     ecolor="red",
+    #     fmt="o-",
+    # )
+
+    plt.xlabel("Generation")
+    plt.ylabel(trait)
+    plt.title(f"Mean {trait} Across Generations")
+    plt.show()
 
 
 def plot_all_mean_trait_values(r: Results) -> None:
-    traits = ["jumpiness", "ociality", "density dependence in sociality"]
+    traits = ["jumpiness", "sociality", "density dependence in sociality"]
     for i, trait in enumerate(traits):
-        plot_mean_trait_values(trait)
+        plot_mean_trait_values(trait, r.trait_values[i])
 
 
 def plot_fitness(r: Results) -> None:
@@ -71,5 +88,4 @@ def plot_fitness(r: Results) -> None:
     plt.xlabel("Generation")
     plt.ylabel("Fitness")
     plt.title("Mean Fitness Across Generations")
-
     plt.show()

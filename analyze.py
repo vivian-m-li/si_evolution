@@ -74,7 +74,8 @@ def write_new_all_file(file_name):
 
 def write_output(directory: str, sim_id: int, output: SimOutput):
     results_file_name = f"{directory}/all.csv"
-    if not os.path.isfile(results_file_name):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
         write_new_all_file(results_file_name)
 
     results_file = open(results_file_name, "a")
@@ -187,11 +188,16 @@ def process_results(sim_outputs: List[pd.DataFrame], params: Parameters) -> Resu
     freq_false_flight_by_group_size: List[DefaultDict[int, List[float]]] = []
     freq_true_flight_by_group_size: List[DefaultDict[int, List[float]]] = []
     fitness_stat: List[Stat] = []
+    trait_values: List[List[Stat]] = [[], [], []]
     for i in range(num_generations):
         freq_false_flight_by_group_size.append(defaultdict(list))
         freq_true_flight_by_group_size.append(defaultdict(list))
-        fitness_means: List[float] = []
-        fitness_vars: List[float] = []
+        group_stats: Dict[str, GroupStats] = {
+            "fitness": GroupStats(means=[], vars=[]),
+            "f_pred": GroupStats(means=[], vars=[]),
+            "s_faith": GroupStats(means=[], vars=[]),
+            "s_dd": GroupStats(means=[], vars=[]),
+        }
         for sim in sim_outputs:
             (
                 gen,
@@ -213,24 +219,38 @@ def process_results(sim_outputs: List[pd.DataFrame], params: Parameters) -> Resu
                 s_dd_mean,
                 s_dd_var,
             ) = cast_data_types(sim[i])
-            fitness_means.append(fitness_mean)
-            fitness_vars.append(fitness_var)
+            for key, mean, var in [
+                ["fitness", fitness_mean, fitness_var],
+                ["f_pred", f_pred_mean, f_pred_var],
+                ["s_faith", s_faith_mean, s_faith_var],
+                ["s_dd", s_dd_mean, s_dd_var],
+            ]:
+                group_stats[key].means.append(mean)
+                group_stats[key].vars.append(var)
             for group_size, freq_false_flight in freq_false_flights.items():
                 freq_false_flight_by_group_size[-1][group_size].append(
                     freq_false_flight
                 )
-                if freq_false_flight == 1:
-                    freq_true_flight_by_group_size[-1][group_size].append(0)
+                # if freq_false_flight == 1:  # TODO
+                #     freq_true_flight_by_group_size[-1][group_size].append(0)
             for group_size, freq_true_flight in freq_true_flights.items():
                 freq_true_flight_by_group_size[-1][group_size].append(freq_true_flight)
-                if freq_true_flight == 1:
-                    freq_false_flight_by_group_size[-1][group_size].append(0)
+                # if freq_true_flight == 1:
+                #     freq_false_flight_by_group_size[-1][group_size].append(0)
         fitness_stat.append(
             Stat(
-                mean=sum(fitness_means) / len(fitness_means),
-                variance=np.var(fitness_vars),
+                mean=sum(group_stats["fitness"].means)
+                / len(group_stats["fitness"].means),
+                variance=np.var(group_stats["fitness"].vars),
             )
         )
+        for j, trait in enumerate(["f_pred", "s_faith", "s_dd"]):
+            trait_values[j].append(
+                Stat(
+                    mean=sum(group_stats[trait].means) / len(group_stats[trait].means),
+                    variance=np.var(group_stats[trait].vars),
+                )
+            )
 
     freq_false_flights_unbinned: List[float] = []
     freq_true_flights_unbinned: List[float] = []
@@ -276,6 +296,7 @@ def process_results(sim_outputs: List[pd.DataFrame], params: Parameters) -> Resu
         freq_false_flights_unbinned,
         freq_true_flights_unbinned,
         fitness_stat,
+        trait_values,
     )
 
 
@@ -291,3 +312,6 @@ def mult_sim_analysis(
 
     if "fitness" in plots:
         plot_fitness(results)
+
+    if "all_mean_trait_values" in plots:
+        plot_all_mean_trait_values(results)
