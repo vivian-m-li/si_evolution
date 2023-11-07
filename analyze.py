@@ -3,11 +3,27 @@ import csv
 import pandas as pd
 import numpy as np
 import ast
+from scipy import stats
 from plot import *
 from si_types import *
 from constants import *
 from collections import defaultdict
 from typing import Optional, List, DefaultDict, Any
+
+CONFIDENCE_LEVEL = 0.95
+
+
+def calc_confidence_interval(means: List[float]) -> Tuple[float, float]:
+    means = np.array(means)
+    mean_of_means = np.mean(means)
+    std_dev_of_sample_means = np.std(means, ddof=1) / np.sqrt(len(means))
+    z_critical = stats.norm.ppf((1 + CONFIDENCE_LEVEL) / 2)
+    margin_of_error = z_critical * std_dev_of_sample_means
+    confidence_interval = (
+        mean_of_means - margin_of_error,
+        mean_of_means + margin_of_error,
+    )
+    return confidence_interval
 
 
 def eval_int_float(x):
@@ -147,7 +163,9 @@ def write_output(directory: str, sim_id: int, output: SimOutput):
     sim_file.close()
 
 
-def get_outputs(out_file_path: str, params: Optional[Parameters]) -> List[pd.DataFrame]:
+def get_outputs(
+    out_file_path: str, params: Optional[OutputParameters]
+) -> List[pd.DataFrame]:
     sims = []
 
     all_sims_file = open(f"{out_file_path}/all.csv", "r")
@@ -182,7 +200,9 @@ def get_outputs(out_file_path: str, params: Optional[Parameters]) -> List[pd.Dat
     return sims
 
 
-def process_results(sim_outputs: List[pd.DataFrame], params: Parameters) -> Results:
+def process_results(
+    sim_outputs: List[pd.DataFrame], params: OutputParameters
+) -> Results:
     num_generations = params.maxf
 
     freq_false_flight_by_group_size: List[DefaultDict[int, List[float]]] = []
@@ -231,17 +251,16 @@ def process_results(sim_outputs: List[pd.DataFrame], params: Parameters) -> Resu
                 freq_false_flight_by_group_size[-1][group_size].append(
                     freq_false_flight
                 )
-                # if freq_false_flight == 1:  # TODO
-                #     freq_true_flight_by_group_size[-1][group_size].append(0)
             for group_size, freq_true_flight in freq_true_flights.items():
                 freq_true_flight_by_group_size[-1][group_size].append(freq_true_flight)
-                # if freq_true_flight == 1:
-                #     freq_false_flight_by_group_size[-1][group_size].append(0)
         fitness_stat.append(
             Stat(
                 mean=sum(group_stats["fitness"].means)
                 / len(group_stats["fitness"].means),
                 variance=np.var(group_stats["fitness"].vars),
+                confidence_interval=calc_confidence_interval(
+                    group_stats["fitness"].means
+                ),
             )
         )
         for j, trait in enumerate(["f_pred", "s_faith", "s_dd"]):
@@ -249,6 +268,9 @@ def process_results(sim_outputs: List[pd.DataFrame], params: Parameters) -> Resu
                 Stat(
                     mean=sum(group_stats[trait].means) / len(group_stats[trait].means),
                     variance=np.var(group_stats[trait].vars),
+                    confidence_interval=calc_confidence_interval(
+                        group_stats[trait].means
+                    ),
                 )
             )
 
@@ -270,10 +292,10 @@ def process_results(sim_outputs: List[pd.DataFrame], params: Parameters) -> Resu
         )
         freq_true_flights_unbinned.append(sum(all_true_flights) / len(all_true_flights))
 
-        for j in range(1, params.max_group_size + 1, GROUP_BIN_SIZE):
+        for j in range(1, params.max_group_size + 1, params.group_bin_size):
             freq_false_flights = []
             freq_true_flights = []
-            for group_size in range(j, j + GROUP_BIN_SIZE):
+            for group_size in range(j, j + params.group_bin_size):
                 if group_size in all_false_flights_by_group:
                     freq_false_flights.extend(all_false_flights_by_group[group_size])
                 if group_size in all_true_flights_by_group:
@@ -301,7 +323,7 @@ def process_results(sim_outputs: List[pd.DataFrame], params: Parameters) -> Resu
 
 
 def mult_sim_analysis(
-    *, out_file_path: str, params: Optional[Parameters], plots: List[str]
+    *, out_file_path: str, params: Optional[OutputParameters], plots: List[str]
 ) -> None:
     sim_outputs = get_outputs(out_file_path, params)
     results = process_results(sim_outputs, params)

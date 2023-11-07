@@ -45,7 +45,7 @@ def run_si_evolution_sims(start_time: float, params: Parameters, num_simulations
         print_estimate = start_time if i == 0 else None
         args.append((start_sim_id, curr_batch_size, params, print_estimate))
         start_sim_id += curr_batch_size
-        p.starmap(run_sim_batch, args)
+    p.starmap(run_sim_batch, args)
     p.close()
     p.join()
 
@@ -56,12 +56,17 @@ if __name__ == "__main__":
     print(f"Starting simulations at {current_time}")
     start = time.time()
 
-    num_simulations = 1
+    num_simulations = 100
     sim_params = [
-        DEFAULT_PARAMS,
+        Parameters(),
         Parameters(max_group_size=15),
         Parameters(max_group_size=50),
         Parameters(max_group_size=50, Ni=500),
+        # Parameters(prob_pred=0.002),
+        # Parameters(prob_pred=0.005),
+        # Parameters(prob_pred=0.01),
+        # Parameters(prob_pred=0.02),
+        # Parameters(prob_pred=0.1),
     ]
     for i, params in enumerate(sim_params):
         param_start = time.time()

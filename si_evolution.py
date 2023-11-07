@@ -3,13 +3,12 @@ import numpy as np
 import pandas as pd
 from pandas.errors import SettingWithCopyWarning
 import random
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
 from analyze import write_output
 from si_types import *
 from constants import *
+from plot import plot_traits
 from collections import defaultdict
-from typing import List, Dict, Tuple, Optional, DefaultDict
+from typing import List, Tuple, DefaultDict, Set
 
 warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
 
@@ -22,42 +21,11 @@ def calc_stat(data) -> Stat:
     return Stat(mean=sum(data) / len(data), variance=np.var(data))
 
 
-def plot_traits(trait_mean, trait_sd, fit_traits_gen):
-    traits = ["jumpiness", "sociality", "density dependence in sociality"]
-    out_ls = []
-
-    fig = plt.figure(figsize=(6, 10))
-    gs = gridspec.GridSpec(3, 1, height_ratios=[1, 1, 1])
-    for i in range(len(traits)):
-        dff = pd.DataFrame(
-            {
-                "generation": range(1, len(trait_mean) + 1),
-                "trait_mean": trait_mean[:, i],
-                "lb": trait_mean[:, i] - trait_sd[:, i],
-                "ub": trait_mean[:, i] + trait_sd[:, i],
-            }
-        )
-        out_ls.append(dff)
-
-        ax = plt.subplot(gs[i, 0])
-        ax.plot(dff["generation"], dff["trait_mean"], color="black", label=traits[i])
-        ax.fill_between(dff["generation"], dff["lb"], dff["ub"], alpha=0.2)
-        ax.set_ylabel(traits[i])
-
-    mean_ff = round(np.mean(fit_traits_gen[-1]["fit"]), 2)
-    sd_ff = round(np.std(fit_traits_gen[-1]["fit"]), 2)
-
-    plt.suptitle(f"Fitness = {mean_ff} +/- {sd_ff} SD")
-    plt.xlabel("Generation")
-    plt.tight_layout()
-    plt.show()
-
-    return out_ls
-
-
-def assign_groups(Ni: int, max_group_size: int) -> Tuple[int, pd.DataFrame]:
+def assign_groups(
+    indivs_alive: List[int], max_group_size: int
+) -> Tuple[int, pd.DataFrame]:
     groups = []
-    indivs = list(range(1, Ni + 1))
+    indivs = indivs_alive.copy()
     random.shuffle(indivs)
     while indivs:
         group_size = random.randint(1, min(max_group_size, len(indivs)))
@@ -70,12 +38,10 @@ def assign_groups(Ni: int, max_group_size: int) -> Tuple[int, pd.DataFrame]:
         for member in members:
             group_lookup[member] = group_id
 
-    indivs = list(range(1, Ni + 1))
     group_vec = []
-    for i in indivs:
+    for i in indivs_alive:
         group_vec.append(group_lookup[i])
-
-    groups_df = pd.DataFrame({"individual": indivs, "group_id": group_vec})
+    groups_df = pd.DataFrame({"individual": indivs_alive, "group_id": group_vec})
     num_groups = len(set(group_vec))
     return num_groups, groups_df
 
@@ -97,7 +63,6 @@ def init_outputs(params: Parameters) -> SimOutput:
 
 # Mutates the original output object
 def init_outputs_per_generation(output: SimOutput) -> None:
-    output.total_deaths.append(0)
     output.detected_pred_deaths.append(0)
     output.nondetected_pred_deaths.append(0)
 
@@ -159,11 +124,12 @@ def evo_fun(
         # For each time step, the population gets reassembled into groups based on a uniform distribution of group sizes. Then, each group is potentially subjected to a predator attack (based on a background predation level, probability set to 0.2 by default below).
 
         group_sizes: List[int] = []
-        false_flights_by_group_size: DefaultDict[int, int] = defaultdict(lambda: 0)
-        true_flights_by_group_size: DefaultDict[int, int] = defaultdict(lambda: 0)
-        total_flights_by_group_size: DefaultDict[int, int] = defaultdict(lambda: 0)
+        false_flights_by_group_size: DefaultDict[int, List[float]] = defaultdict(list)
+        true_flights_by_group_size: DefaultDict[int, List[float]] = defaultdict(list)
+        indivs_dead: Set[int] = set()
         for t in range(1, tf):
-            num_groups, groups_df = assign_groups(Ni, max_group_size)
+            indivs_alive = [i for i in list(range(1, Ni + 1)) if i not in indivs_dead]
+            num_groups, groups_df = assign_groups(indivs_alive, max_group_size)
             group_sizes.append(Ni / num_groups)
 
             flights0 = np.full((num_groups, 4), np.nan)
@@ -171,106 +137,111 @@ def evo_fun(
             eaten_nodetect0 = np.full((num_groups, 2), np.nan)
             attacks_vec = np.full(num_groups, np.nan)
 
-            for group_id in range(num_groups):
+            for indiv_id in indivs_dead:
+                fit[indiv_id - 1, t] = 0
+
+            for group_idx in range(num_groups):
                 pred = random_binomial(prob_pred)
-                attacks_vec[group_id] = pred
+                attacks_vec[group_idx] = pred
                 prev_flee = 0
-                subgroup = groups_df[groups_df["group_id"] == group_id + 1]
+                subgroup = groups_df[groups_df["group_id"] == group_idx + 1]
                 ddensity = len(subgroup)
                 prev_detect = 0
                 eaten_detect_vec = []
                 eaten_nodetect_vec = []
 
+                num_false_flee = 0
+                num_true_flee = 0
                 for i in range(len(subgroup)):
-                    ii = subgroup["individual"].values[i] - 1
+                    indiv_id = subgroup["individual"].values[i]
+                    indiv_idx = indiv_id - 1
                     eaten_detect = 0
                     eaten_nodetect = 0
-                    if fit[ii, t - 1] == 0:
-                        fit[ii, t] = 0
+                    if prev_flee > 0:
+                        p_flee_s = (
+                            prev_flee * s_faith[indiv_idx]
+                            + (ddensity - prev_flee) * s_dd[indiv_idx]
+                        )
+                        p_flee_s = min(1, p_flee_s)
+                        p_flee_s = max(0, p_flee_s)
+                        flee = random_binomial(f_false[indiv_idx]) or random_binomial(
+                            p_flee_s
+                        )
                     else:
-                        if prev_flee > 0:
-                            p_flee_s = (
-                                prev_flee * s_faith[ii]
-                                + (ddensity - prev_flee) * s_dd[ii]
-                            )
-                            p_flee_s = min(1, p_flee_s)
-                            p_flee_s = max(0, p_flee_s)
-                            flee = random_binomial(f_false[ii]) or random_binomial(
-                                p_flee_s
-                            )
+                        flee = random_binomial(f_false[indiv_idx])
+                    prev_flee += flee
+
+                    if flee == 1:
+                        fit[indiv_idx, t] = fit[indiv_idx, t - 1]
+                        if pred == 1:  # true flight
+                            num_true_flee += 1
+                        else:  # false flight
+                            num_false_flee += 1
+                    elif pred == 1:
+                        p_detect_s = (
+                            prev_detect * s_faith[indiv_idx]
+                            + (ddensity - prev_flee - prev_detect) * s_dd[indiv_idx]
+                        )
+                        p_detect_s = min(1, p_detect_s)
+                        p_detect_s = max(0, p_detect_s)
+                        detect = random_binomial(f_pred[indiv_idx]) or random_binomial(
+                            p_detect_s
+                        )
+                        prev_detect += detect
+
+                        if detect == 1:
+                            peaten_detect = 1 / ((len(subgroup) - prev_flee) + 10)
+                            eaten_detect = random_binomial(peaten_detect)
+                            eaten_detect_vec.append(eaten_detect)
                         else:
-                            flee = np.random.binomial(1, f_false[ii])
+                            peaten_nodetect = 1 / (len(subgroup) - prev_flee)
+                            eaten_nodetect = random_binomial(peaten_nodetect)
+                            eaten_nodetect_vec.append(eaten_nodetect)
 
-                        prev_flee += flee
+                        if eaten_detect == 1 or eaten_nodetect == 1:
+                            fit[indiv_idx, t] = 0
+                            indivs_dead.add(indiv_id)
 
-                        if flee == 1:
-                            fit[ii, t] = fit[ii, t - 1]
-                            total_flights_by_group_size[ddensity] += 1
-                            if pred == 1:
-                                false_flights_by_group_size[ddensity] += 1
-                            else:
-                                true_flights_by_group_size[ddensity] += 1
-                        elif pred == 1:
-                            p_detect_s = (
-                                prev_detect * s_faith[ii]
-                                + (ddensity - prev_flee - prev_detect) * s_dd[ii]
-                            )
-                            p_detect_s = min(1, p_detect_s)
-                            p_detect_s = max(0, p_detect_s)
-                            detect = random_binomial(f_pred[ii]) or random_binomial(
-                                p_detect_s
-                            )
-                            prev_detect += detect
+                        if eaten_detect == 1:
+                            output.detected_pred_deaths[-1] += 1
 
-                            if detect == 1:
-                                peaten_detect = 1 / ((len(subgroup) - prev_flee) + 10)
-                                eaten_detect = random_binomial(peaten_detect)
-                                eaten_detect_vec.append(eaten_detect)
-                            else:
-                                peaten_nodetect = 1 / (len(subgroup) - prev_flee)
-                                eaten_nodetect = random_binomial(peaten_nodetect)
-                                eaten_nodetect_vec.append(eaten_nodetect)
+                        elif eaten_nodetect == 1:
+                            output.nondetected_pred_deaths[-1] += 1
 
-                            if eaten_detect == 1 or eaten_nodetect == 1:
-                                fit[ii, t] = 0
-                                # per generation?
-                                output.total_deaths[-1] += 1
-
-                            if eaten_detect == 1:
-                                # per timestep - should be per generation
-                                output.detected_pred_deaths[-1] += 1
-
-                            elif eaten_nodetect == 1:
-                                output.nondetected_pred_deaths[-1] += 1
-
-                            else:
-                                fit[ii, t] = fit[ii, t - 1]
                         else:
-                            fit[ii, t] = fit[ii, t - 1] + e_gain
+                            fit[indiv_idx, t] = fit[indiv_idx, t - 1]
+                    else:
+                        fit[indiv_idx, t] = fit[indiv_idx, t - 1] + e_gain
 
-                flights0[group_id, :] = [t, ddensity, prev_flee, prev_detect]
-                eaten_detect0[group_id, :] = [
+                flights0[group_idx, :] = [t, ddensity, prev_flee, prev_detect]
+                eaten_detect0[group_idx, :] = [
                     t,
-                    len(eaten_detect_vec),
-                ]  # TODO: should this be a length or a sum?
-                eaten_nodetect0[group_id, :] = [t, len(eaten_nodetect_vec)]
+                    sum(eaten_detect_vec),
+                ]
+                eaten_nodetect0[group_idx, :] = [t, sum(eaten_nodetect_vec)]
+                false_flights_by_group_size[ddensity].append(num_false_flee / ddensity)
+                if pred:
+                    true_flights_by_group_size[ddensity].append(
+                        num_true_flee / ddensity
+                    )
 
             attacks_all.append(attacks_vec)
             eaten_detect_all.append(eaten_detect0)
             eaten_nodetect_all.append(eaten_nodetect0)
             flights.append(flights0)
 
+        output.total_deaths.append(len(indivs_dead))
         output.group_size.append(calc_stat(group_sizes))
         output.false_flights.append(
             {
-                group_size: num_flights / total_flights_by_group_size[group_size]
-                for group_size, num_flights in false_flights_by_group_size.items()
+                group_size: sum(freq_false_flights) / len(freq_false_flights)
+                for group_size, freq_false_flights in false_flights_by_group_size.items()
             }
         )
         output.true_flights.append(
             {
-                group_size: num_flights / total_flights_by_group_size[group_size]
-                for group_size, num_flights in true_flights_by_group_size.items()
+                group_size: sum(freq_true_flights) / len(freq_true_flights)
+                for group_size, freq_true_flights in true_flights_by_group_size.items()
             }
         )
         flights_master.append(np.concatenate(flights))

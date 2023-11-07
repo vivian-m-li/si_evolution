@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 
 
 @dataclass
@@ -14,9 +14,15 @@ class Parameters:
 
 
 @dataclass
+class OutputParameters(Parameters):
+    group_bin_size: int = 5
+
+
+@dataclass
 class Stat:
     mean: float
     variance: float
+    confidence_interval: Optional[Tuple[float, float]] = None
 
 
 @dataclass
