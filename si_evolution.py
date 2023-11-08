@@ -142,16 +142,14 @@ def evo_fun(
 
             for group_idx in range(num_groups):
                 pred = random_binomial(prob_pred)
-                attacks_vec[group_idx] = pred
-                prev_flee = 0
                 subgroup = groups_df[groups_df["group_id"] == group_idx + 1]
                 ddensity = len(subgroup)
-                prev_detect = 0
+                attacks_vec[group_idx] = pred
+                prev_flee = 0  # false flights
+                prev_detect = 0  # true flights
                 eaten_detect_vec = []
                 eaten_nodetect_vec = []
 
-                num_false_flee = 0
-                num_true_flee = 0
                 for i in range(len(subgroup)):
                     indiv_id = subgroup["individual"].values[i]
                     indiv_idx = indiv_id - 1
@@ -171,13 +169,10 @@ def evo_fun(
                         flee = random_binomial(f_false[indiv_idx])
                     prev_flee += flee
 
-                    if flee == 1:
+                    if flee or pred:
                         fit[indiv_idx, t] = fit[indiv_idx, t - 1]
-                        if pred == 1:  # true flight
-                            num_true_flee += 1
-                        else:  # false flight
-                            num_false_flee += 1
-                    elif pred == 1:
+
+                    if pred and not flee:
                         p_detect_s = (
                             prev_detect * s_faith[indiv_idx]
                             + (ddensity - prev_flee - prev_detect) * s_dd[indiv_idx]
@@ -189,7 +184,7 @@ def evo_fun(
                         )
                         prev_detect += detect
 
-                        if detect == 1:
+                        if detect:
                             peaten_detect = 1 / ((len(subgroup) - prev_flee) + 10)
                             eaten_detect = random_binomial(peaten_detect)
                             eaten_detect_vec.append(eaten_detect)
@@ -198,19 +193,20 @@ def evo_fun(
                             eaten_nodetect = random_binomial(peaten_nodetect)
                             eaten_nodetect_vec.append(eaten_nodetect)
 
-                        if eaten_detect == 1 or eaten_nodetect == 1:
+                        if eaten_detect or eaten_nodetect:
                             fit[indiv_idx, t] = 0
                             indivs_dead.add(indiv_id)
 
-                        if eaten_detect == 1:
+                        if eaten_detect:
                             output.detected_pred_deaths[-1] += 1
 
-                        elif eaten_nodetect == 1:
+                        elif eaten_nodetect:
                             output.nondetected_pred_deaths[-1] += 1
 
                         else:
                             fit[indiv_idx, t] = fit[indiv_idx, t - 1]
-                    else:
+
+                    if not pred and not flee:
                         fit[indiv_idx, t] = fit[indiv_idx, t - 1] + e_gain
 
                 flights0[group_idx, :] = [t, ddensity, prev_flee, prev_detect]
@@ -219,10 +215,11 @@ def evo_fun(
                     sum(eaten_detect_vec),
                 ]
                 eaten_nodetect0[group_idx, :] = [t, sum(eaten_nodetect_vec)]
-                false_flights_by_group_size[ddensity].append(num_false_flee / ddensity)
-                if pred:
+                if prev_flee > 0:
+                    false_flights_by_group_size[ddensity].append(prev_flee / ddensity)
+                if prev_detect > 0:
                     true_flights_by_group_size[ddensity].append(
-                        num_true_flee / ddensity
+                        prev_detect / (ddensity - prev_flee)
                     )
 
             attacks_all.append(attacks_vec)

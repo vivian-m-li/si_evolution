@@ -56,7 +56,7 @@ if __name__ == "__main__":
     print(f"Starting simulations at {current_time}")
     start = time.time()
 
-    num_simulations = 100
+    num_simulations = 10
     sim_params = [
         Parameters(),
         Parameters(max_group_size=15),
