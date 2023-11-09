@@ -53,6 +53,8 @@ class Results:
     freq_true_flights_binned: List[List[Optional[float]]]
     freq_false_flights_unbinned: List[float]
     freq_true_flights_unbinned: List[float]
+    freq_detected_pred_deaths_all: List[float]
+    freq_nondetected_pred_deaths_all: List[float]
     fitness_stat: List[Stat]
     trait_values: List[List[Stat]]
 

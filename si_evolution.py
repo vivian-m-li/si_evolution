@@ -6,6 +6,7 @@ import random
 from analyze import write_output
 from si_types import *
 from constants import *
+from helper import *
 from plot import plot_traits
 from collections import defaultdict
 from typing import List, Tuple, DefaultDict, Set
@@ -18,7 +19,7 @@ def random_binomial(prob: float):
 
 
 def calc_stat(data) -> Stat:
-    return Stat(mean=sum(data) / len(data), variance=np.var(data))
+    return Stat(mean=calc_mean(data), variance=np.var(data))
 
 
 def assign_groups(
@@ -231,13 +232,13 @@ def evo_fun(
         output.group_size.append(calc_stat(group_sizes))
         output.false_flights.append(
             {
-                group_size: sum(freq_false_flights) / len(freq_false_flights)
+                group_size: calc_mean(freq_false_flights)
                 for group_size, freq_false_flights in false_flights_by_group_size.items()
             }
         )
         output.true_flights.append(
             {
-                group_size: sum(freq_true_flights) / len(freq_true_flights)
+                group_size: calc_mean(freq_true_flights)
                 for group_size, freq_true_flights in true_flights_by_group_size.items()
             }
         )

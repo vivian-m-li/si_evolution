@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+from matplotlib.lines import Line2D
 import numpy as np
 import pandas as pd
 from si_types import *
@@ -187,4 +188,45 @@ def plot_avg_true_flight_across_group_size(results: List[MultResults]) -> None:
 
 
 def plot_detected_nondetected_pred_deaths(results: List[MultResults]) -> None:
-    return
+    plt.figure(figsize=(10, 6))
+
+    legend_elements = []
+    x = list(range(1, results[0].params.maxf + 1))
+    for i, r in enumerate(results):
+        color = COLOR_MAP[i]
+        plt.plot(
+            x,
+            r.results.freq_detected_pred_deaths_all,
+            color=color,
+        )
+        plt.plot(
+            x,
+            r.results.freq_nondetected_pred_deaths_all,
+            color=color,
+            linestyle=(0, (1, 5)),
+        )
+        legend_elements.append(
+            Line2D([0], [0], color=color, label=r.params.max_group_size)
+        )
+
+    legend_elements.extend(
+        [
+            Line2D([0], [0], label=" ", color="white", markersize=0),
+            Line2D([0], [0], color="black", label="Detected Predator Deaths"),
+            Line2D(
+                [0],
+                [0],
+                color="black",
+                label="Nondetected Predator Deaths",
+                linestyle=(0, (1, 5)),
+            ),
+        ]
+    )
+
+    plt.legend(title="Max Group Size", handles=legend_elements, loc="upper right")
+    plt.title(
+        f"Detected and Nondetected Deaths from Predators At Varying Max Group Sizes, Prob Pred = 0.2"
+    )
+    plt.xlabel("Generation")
+    plt.ylabel(f"Freq Death")
+    plt.show()

@@ -7,6 +7,7 @@ from scipy import stats
 from plot import *
 from si_types import *
 from constants import *
+from helper import *
 from collections import defaultdict
 from typing import Optional, List, DefaultDict, Any
 
@@ -14,8 +15,7 @@ CONFIDENCE_LEVEL = 0.95
 
 
 def calc_confidence_interval(means: List[float]) -> Tuple[float, float]:
-    means = np.array(means)
-    mean_of_means = np.mean(means)
+    mean_of_means = calc_mean(means)
     std_dev_of_sample_means = np.std(means, ddof=1) / np.sqrt(len(means))
     z_critical = stats.norm.ppf((1 + CONFIDENCE_LEVEL) / 2)
     margin_of_error = z_critical * std_dev_of_sample_means
@@ -206,11 +206,15 @@ def process_results(
 
     freq_false_flight_by_group_size: List[DefaultDict[int, List[float]]] = []
     freq_true_flight_by_group_size: List[DefaultDict[int, List[float]]] = []
+    freq_detected_pred_deaths_all: List[float] = []
+    freq_nondetected_pred_deaths_all: List[float] = []
     fitness_stat: List[Stat] = []
     trait_values: List[List[Stat]] = [[], [], []]
     for i in range(num_generations):
         freq_false_flight_by_group_size.append(defaultdict(list))
         freq_true_flight_by_group_size.append(defaultdict(list))
+        freq_detected_pred_deaths_gen: List[float] = []
+        freq_nondetected_pred_deaths_gen: List[float] = []
         group_stats: Dict[str, GroupStats] = {
             "fitness": GroupStats(means=[], vars=[]),
             "f_pred": GroupStats(means=[], vars=[]),
@@ -252,10 +256,15 @@ def process_results(
                 )
             for group_size, freq_true_flight in freq_true_flights.items():
                 freq_true_flight_by_group_size[-1][group_size].append(freq_true_flight)
+            freq_detected_pred_deaths_gen.append(freq_detected_pred_deaths)
+            freq_nondetected_pred_deaths_gen.append(freq_nondetected_pred_deaths)
+        freq_detected_pred_deaths_all.append(calc_mean(freq_detected_pred_deaths_gen))
+        freq_nondetected_pred_deaths_all.append(
+            calc_mean(freq_nondetected_pred_deaths_gen)
+        )
         fitness_stat.append(
             Stat(
-                mean=sum(group_stats["fitness"].means)
-                / len(group_stats["fitness"].means),
+                mean=calc_mean(group_stats["fitness"].means),
                 variance=np.var(group_stats["fitness"].vars),
                 confidence_interval=calc_confidence_interval(
                     group_stats["fitness"].means
@@ -265,7 +274,7 @@ def process_results(
         for j, trait in enumerate(["f_pred", "s_faith", "s_dd"]):
             trait_values[j].append(
                 Stat(
-                    mean=sum(group_stats[trait].means) / len(group_stats[trait].means),
+                    mean=calc_mean(group_stats[trait].means),
                     variance=np.var(group_stats[trait].vars),
                     confidence_interval=calc_confidence_interval(
                         group_stats[trait].means
@@ -286,10 +295,8 @@ def process_results(
         all_false_flights = [x for y in all_false_flights_by_group.values() for x in y]
         all_true_flights = [x for y in all_true_flights_by_group.values() for x in y]
 
-        freq_false_flights_unbinned.append(
-            sum(all_false_flights) / len(all_false_flights)
-        )
-        freq_true_flights_unbinned.append(sum(all_true_flights) / len(all_true_flights))
+        freq_false_flights_unbinned.append(calc_mean(all_false_flights))
+        freq_true_flights_unbinned.append(calc_mean(all_true_flights))
 
         for j in range(1, params.max_group_size + 1, params.group_bin_size):
             freq_false_flights = []
@@ -301,14 +308,10 @@ def process_results(
                     freq_true_flights.extend(all_true_flights_by_group[group_size])
 
             freq_false_flights_binned[-1].append(
-                None
-                if len(freq_false_flights) == 0
-                else sum(freq_false_flights) / len(freq_false_flights)
+                None if len(freq_false_flights) == 0 else calc_mean(freq_false_flights)
             )
             freq_true_flights_binned[-1].append(
-                None
-                if len(freq_true_flights) == 0
-                else sum(freq_true_flights) / len(freq_true_flights)
+                None if len(freq_true_flights) == 0 else calc_mean(freq_true_flights)
             )
 
     return Results(
@@ -316,6 +319,8 @@ def process_results(
         freq_true_flights_binned,
         freq_false_flights_unbinned,
         freq_true_flights_unbinned,
+        freq_detected_pred_deaths_all,
+        freq_nondetected_pred_deaths_all,
         fitness_stat,
         trait_values,
     )
