@@ -65,6 +65,7 @@ def plot_flight_freq_by_group_size(
     )
     plt.xlabel("Generation")
     plt.ylabel(f"Freq {flight_type} Flight")
+    plt.show()
 
 
 def plot_false_flight_freq(r: Results, params: OutputParameters) -> None:
@@ -121,3 +122,69 @@ def plot_fitness(r: Results) -> None:
     plt.ylabel("Fitness")
     plt.title("Mean Fitness Across Generations")
     plt.show()
+
+
+def plot_avg_flight_across_pred(
+    results: List[Tuple[Parameters, List[float]]], flight_type: str
+) -> None:
+    plt.figure(figsize=(10, 6))
+
+    x = list(range(1, results[0][0].maxf + 1))
+    for i, r in enumerate(results):
+        params, flights = r
+        plt.plot(x, flights, label=params.prob_pred, color=COLOR_MAP[i])
+
+    plt.legend(title="Prob Predation", loc="upper right")
+    plt.title(
+        f"Average Frequency of {flight_type} Flights Across Generations At Varying Prob of Predation, Max Group Size = 25"
+    )
+    plt.xlabel("Generation")
+    plt.ylabel(f"Freq {flight_type} Flight")
+    plt.show()
+
+
+def plot_avg_false_flight_across_pred(results: List[MultResults]) -> None:
+    plot_avg_flight_across_pred(
+        [(r.params, r.results.freq_false_flights_unbinned) for r in results], "False"
+    )
+
+
+def plot_avg_true_flight_across_pred(results: List[MultResults]) -> None:
+    plot_avg_flight_across_pred(
+        [(r.params, r.results.freq_true_flights_unbinned) for r in results], "True"
+    )
+
+
+def plot_avg_flight_across_group_size(
+    results: List[Tuple[Parameters, List[float]]], flight_type: str
+) -> None:
+    plt.figure(figsize=(10, 6))
+
+    x = list(range(1, results[0][0].maxf + 1))
+    for i, r in enumerate(results):
+        params, flights = r
+        plt.plot(x, flights, label=params.max_group_size, color=COLOR_MAP[i])
+
+    plt.legend(title="Max Group Size", loc="upper right")
+    plt.title(
+        f"Average Frequency of {flight_type} Flights Across Generations At Varying Max Group Sizes, Prob Pred = 0.2"
+    )
+    plt.xlabel("Generation")
+    plt.ylabel(f"Freq {flight_type} Flight")
+    plt.show()
+
+
+def plot_avg_false_flight_across_group_size(results: List[MultResults]) -> None:
+    plot_avg_flight_across_group_size(
+        [(r.params, r.results.freq_false_flights_unbinned) for r in results], "False"
+    )
+
+
+def plot_avg_true_flight_across_group_size(results: List[MultResults]) -> None:
+    plot_avg_flight_across_group_size(
+        [(r.params, r.results.freq_true_flights_unbinned) for r in results], "True"
+    )
+
+
+def plot_detected_nondetected_pred_deaths(results: List[MultResults]) -> None:
+    return

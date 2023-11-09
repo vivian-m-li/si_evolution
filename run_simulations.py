@@ -56,17 +56,20 @@ if __name__ == "__main__":
     print(f"Starting simulations at {current_time}")
     start = time.time()
 
-    num_simulations = 10
+    num_simulations = 100
     sim_params = [
-        Parameters(),
-        Parameters(max_group_size=15),
-        Parameters(max_group_size=50),
-        Parameters(max_group_size=50, Ni=500),
+        # Parameters(),
+        # Parameters(max_group_size=15),
+        # Parameters(max_group_size=50),
+        # Parameters(max_group_size=50, Ni=500),
         # Parameters(prob_pred=0.002),
         # Parameters(prob_pred=0.005),
         # Parameters(prob_pred=0.01),
         # Parameters(prob_pred=0.02),
         # Parameters(prob_pred=0.1),
+        # Parameters(max_group_size=15, Ni=500),
+        # Parameters(max_group_size=25, prob_pred=0.02, Ni=500),
+        # Parameters(max_group_size=25, Ni=500),
     ]
     for i, params in enumerate(sim_params):
         param_start = time.time()

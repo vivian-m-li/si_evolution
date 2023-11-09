@@ -142,8 +142,8 @@ def write_output(directory: str, sim_id: int, output: SimOutput):
                 output.total_deaths[g],
                 str(output.false_flights[g]),
                 str(output.true_flights[g]),
-                output.detected_pred_deaths[g] / output.total_deaths[g],
-                output.nondetected_pred_deaths[g] / output.total_deaths[g],
+                output.detected_pred_deaths[g] / max(1, output.total_deaths[g]),
+                output.nondetected_pred_deaths[g] / max(1, output.total_deaths[g]),
                 output.group_size[g].mean,
                 output.group_size[g].variance,
                 output.energetic_states[g].mean,
@@ -196,7 +196,6 @@ def get_outputs(
         sims.append(df)
 
     all_sims_file.close()
-
     return sims
 
 
@@ -323,17 +322,34 @@ def process_results(
 
 
 def mult_sim_analysis(
-    *, out_file_path: str, params: Optional[OutputParameters], plots: List[str]
+    *,
+    out_file_path: str,
+    all_params: List[OutputParameters],
+    plots: List[str],
 ) -> None:
-    sim_outputs = get_outputs(out_file_path, params)
-    results = process_results(sim_outputs, params)
+    all_results: List[MultResults] = []
+    for params in all_params:
+        sim_outputs = get_outputs(out_file_path, params)
+        results = process_results(sim_outputs, params)
+        all_results.append(MultResults(params, results))
 
-    if "flight_freq_by_group_size" in plots:
-        plot_false_flight_freq(results, params)
-        plot_true_flight_freq(results, params)
+        if "flight_freq_by_group_size" in plots:
+            plot_false_flight_freq(results, params)
+            plot_true_flight_freq(results, params)
 
-    if "fitness" in plots:
-        plot_fitness(results)
+        if "fitness" in plots:
+            plot_fitness(results)
 
-    if "all_mean_trait_values" in plots:
-        plot_all_mean_trait_values(results)
+        if "all_mean_trait_values" in plots:
+            plot_all_mean_trait_values(results)
+
+    if "avg_flight_across_pred" in plots:
+        plot_avg_false_flight_across_pred(all_results)
+        plot_avg_true_flight_across_pred(all_results)
+
+    if "avg_flight_across_group_size" in plots:
+        plot_avg_false_flight_across_group_size(all_results)
+        plot_avg_true_flight_across_group_size(all_results)
+
+    if "detected_nondetected_pred_deaths" in plots:
+        plot_detected_nondetected_pred_deaths(all_results)

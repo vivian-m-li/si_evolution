@@ -61,3 +61,9 @@ class Results:
 class GroupStats:
     means: List[float]
     vars: List[float]
+
+
+@dataclass
+class MultResults:
+    params: Parameters
+    results: Results
