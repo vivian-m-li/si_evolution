@@ -70,6 +70,9 @@ if __name__ == "__main__":
         # Parameters(max_group_size=15, Ni=500),
         # Parameters(max_group_size=25, prob_pred=0.02, Ni=500),
         # Parameters(max_group_size=25, Ni=500),
+        # Parameters(prob_pred=0.04),
+        # Parameters(prob_pred=0.06),
+        # Parameters(prob_pred=0.08),
     ]
     for i, params in enumerate(sim_params):
         param_start = time.time()

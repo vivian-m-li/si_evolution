@@ -125,69 +125,46 @@ def plot_fitness(r: Results) -> None:
     plt.show()
 
 
-def plot_avg_flight_across_pred(
-    results: List[Tuple[Parameters, List[float]]], flight_type: str
+def plot_avg_flight(
+    results: List[Tuple[Parameters, List[float]]],
+    flight_type: str,
+    param: AnalysisParam,
 ) -> None:
     plt.figure(figsize=(10, 6))
 
     x = list(range(1, results[0][0].maxf + 1))
     for i, r in enumerate(results):
         params, flights = r
-        plt.plot(x, flights, label=params.prob_pred, color=COLOR_MAP[i])
+        plt.plot(x, flights, label=param.func(params), color=COLOR_MAP[i])
 
-    plt.legend(title="Prob Predation", loc="upper right")
+    plt.legend(title=param.label, loc="upper right")
     plt.title(
-        f"Average Frequency of {flight_type} Flights Across Generations At Varying Prob of Predation, Max Group Size = 25"
+        f"Average Frequency of {flight_type} Flights Across Generations At Varying {param.label}"
     )
     plt.xlabel("Generation")
     plt.ylabel(f"Freq {flight_type} Flight")
     plt.show()
 
 
-def plot_avg_false_flight_across_pred(results: List[MultResults]) -> None:
-    plot_avg_flight_across_pred(
-        [(r.params, r.results.freq_false_flights_unbinned) for r in results], "False"
+def plot_avg_false_flight(results: List[MultResults], param: AnalysisParam) -> None:
+    plot_avg_flight(
+        [(r.params, r.results.freq_false_flights_unbinned) for r in results],
+        "False",
+        param,
     )
 
 
-def plot_avg_true_flight_across_pred(results: List[MultResults]) -> None:
-    plot_avg_flight_across_pred(
-        [(r.params, r.results.freq_true_flights_unbinned) for r in results], "True"
+def plot_avg_true_flight(results: List[MultResults], param: AnalysisParam) -> None:
+    plot_avg_flight(
+        [(r.params, r.results.freq_true_flights_unbinned) for r in results],
+        "True",
+        param,
     )
 
 
-def plot_avg_flight_across_group_size(
-    results: List[Tuple[Parameters, List[float]]], flight_type: str
+def plot_detected_nondetected_pred_deaths(
+    results: List[MultResults], param: AnalysisParam
 ) -> None:
-    plt.figure(figsize=(10, 6))
-
-    x = list(range(1, results[0][0].maxf + 1))
-    for i, r in enumerate(results):
-        params, flights = r
-        plt.plot(x, flights, label=params.max_group_size, color=COLOR_MAP[i])
-
-    plt.legend(title="Max Group Size", loc="upper right")
-    plt.title(
-        f"Average Frequency of {flight_type} Flights Across Generations At Varying Max Group Sizes, Prob Pred = 0.2"
-    )
-    plt.xlabel("Generation")
-    plt.ylabel(f"Freq {flight_type} Flight")
-    plt.show()
-
-
-def plot_avg_false_flight_across_group_size(results: List[MultResults]) -> None:
-    plot_avg_flight_across_group_size(
-        [(r.params, r.results.freq_false_flights_unbinned) for r in results], "False"
-    )
-
-
-def plot_avg_true_flight_across_group_size(results: List[MultResults]) -> None:
-    plot_avg_flight_across_group_size(
-        [(r.params, r.results.freq_true_flights_unbinned) for r in results], "True"
-    )
-
-
-def plot_detected_nondetected_pred_deaths(results: List[MultResults]) -> None:
     plt.figure(figsize=(10, 6))
 
     legend_elements = []
@@ -206,7 +183,7 @@ def plot_detected_nondetected_pred_deaths(results: List[MultResults]) -> None:
             linestyle=(0, (1, 5)),
         )
         legend_elements.append(
-            Line2D([0], [0], color=color, label=r.params.max_group_size)
+            Line2D([0], [0], color=color, label=param.func(r.params))
         )
 
     legend_elements.extend(
@@ -223,9 +200,9 @@ def plot_detected_nondetected_pred_deaths(results: List[MultResults]) -> None:
         ]
     )
 
-    plt.legend(title="Max Group Size", handles=legend_elements, loc="upper right")
+    plt.legend(title=param.label, handles=legend_elements, loc="upper right")
     plt.title(
-        f"Detected and Nondetected Deaths from Predators At Varying Max Group Sizes, Prob Pred = 0.2"
+        f"Detected and Nondetected Deaths from Predators At Varying {param.label}"
     )
     plt.xlabel("Generation")
     plt.ylabel(f"Freq Death")

@@ -331,6 +331,7 @@ def mult_sim_analysis(
     out_file_path: str,
     all_params: List[OutputParameters],
     plots: List[str],
+    param: Optional[str] = None,
 ) -> None:
     all_results: List[MultResults] = []
     for params in all_params:
@@ -348,13 +349,12 @@ def mult_sim_analysis(
         if "all_mean_trait_values" in plots:
             plot_all_mean_trait_values(results)
 
-    if "avg_flight_across_pred" in plots:
-        plot_avg_false_flight_across_pred(all_results)
-        plot_avg_true_flight_across_pred(all_results)
+    if param is not None:
+        analysis_param = PARAM_FUNCS[param]
 
-    if "avg_flight_across_group_size" in plots:
-        plot_avg_false_flight_across_group_size(all_results)
-        plot_avg_true_flight_across_group_size(all_results)
+        if "avg_flight" in plots:
+            plot_avg_false_flight(all_results, analysis_param)
+            plot_avg_true_flight(all_results, analysis_param)
 
-    if "detected_nondetected_pred_deaths" in plots:
-        plot_detected_nondetected_pred_deaths(all_results)
+        if "detected_nondetected_pred_deaths" in plots:
+            plot_detected_nondetected_pred_deaths(all_results, analysis_param)

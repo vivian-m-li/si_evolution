@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple, Callable
 
 
 @dataclass
@@ -69,3 +69,9 @@ class GroupStats:
 class MultResults:
     params: Parameters
     results: Results
+
+
+@dataclass
+class AnalysisParam:
+    label: str
+    func: Callable[[Parameters], float]
