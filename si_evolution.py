@@ -173,6 +173,7 @@ def evo_fun(
                     if flee or pred:
                         fit[indiv_idx, t] = fit[indiv_idx, t - 1]
 
+                    # TODO: cap num deaths - assign weights to p_detect and pick only 1 individual to eat
                     if pred and not flee:
                         p_detect_s = (
                             prev_detect * s_faith[indiv_idx]

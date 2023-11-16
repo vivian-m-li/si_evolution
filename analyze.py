@@ -210,6 +210,7 @@ def process_results(
     freq_nondetected_pred_deaths_all: List[float] = []
     fitness_stat: List[Stat] = []
     trait_values: List[List[Stat]] = [[], [], []]
+    deaths_stat: List[Stat] = []
     for i in range(num_generations):
         freq_false_flight_by_group_size.append(defaultdict(list))
         freq_true_flight_by_group_size.append(defaultdict(list))
@@ -221,6 +222,7 @@ def process_results(
             "s_faith": GroupStats(means=[], vars=[]),
             "s_dd": GroupStats(means=[], vars=[]),
         }
+        all_deaths: List[int] = []
         for sim in sim_outputs:
             (
                 gen,
@@ -258,6 +260,7 @@ def process_results(
                 freq_true_flight_by_group_size[-1][group_size].append(freq_true_flight)
             freq_detected_pred_deaths_gen.append(freq_detected_pred_deaths)
             freq_nondetected_pred_deaths_gen.append(freq_nondetected_pred_deaths)
+            all_deaths.append(total_deaths)
         freq_detected_pred_deaths_all.append(calc_mean(freq_detected_pred_deaths_gen))
         freq_nondetected_pred_deaths_all.append(
             calc_mean(freq_nondetected_pred_deaths_gen)
@@ -281,6 +284,9 @@ def process_results(
                     ),
                 )
             )
+        deaths_stat.append(
+            Stat(mean=calc_mean(all_deaths), variance=np.var(all_deaths))
+        )
 
     freq_false_flights_unbinned: List[float] = []
     freq_true_flights_unbinned: List[float] = []
@@ -297,6 +303,9 @@ def process_results(
 
         freq_false_flights_unbinned.append(calc_mean(all_false_flights))
         freq_true_flights_unbinned.append(calc_mean(all_true_flights))
+
+        if params.group_bin_size is None:
+            continue
 
         for j in range(1, params.max_group_size + 1, params.group_bin_size):
             freq_false_flights = []
@@ -323,6 +332,7 @@ def process_results(
         freq_nondetected_pred_deaths_all,
         fitness_stat,
         trait_values,
+        deaths_stat,
     )
 
 
@@ -358,3 +368,12 @@ def mult_sim_analysis(
 
         if "detected_nondetected_pred_deaths" in plots:
             plot_detected_nondetected_pred_deaths(all_results, analysis_param)
+
+        if "total_deaths_per_gen" in plots:
+            plot_total_deaths_per_gen(all_results, analysis_param)
+
+    if "gain_to_pred_fitness" in plots:
+        plot_gain_to_pred_fitness(all_results)
+
+    if "gain_to_pred_trait_vals" in plots:
+        plot_gain_to_pred_trait_vals(all_results)

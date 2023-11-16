@@ -12,4 +12,5 @@ PARAM_FUNCS = {
     "max_group_size": AnalysisParam(
         label="Max Group Size", func=lambda x: x.max_group_size
     ),
+    "e_gain": AnalysisParam(label="Energetic Gain", func=lambda x: x.e_gain),
 }

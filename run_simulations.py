@@ -5,7 +5,7 @@ import math
 from multiprocessing import Pool
 from si_evolution import evo_fun
 from analyze import get_sim_id
-from constants import DEFAULT_PARAMS, out_file_path
+from constants import out_file_path
 from si_types import Parameters
 from typing import Optional, List
 
@@ -58,21 +58,39 @@ if __name__ == "__main__":
 
     num_simulations = 100
     sim_params = [
-        # Parameters(),
-        # Parameters(max_group_size=15),
-        # Parameters(max_group_size=50),
-        # Parameters(max_group_size=50, Ni=500),
+        # Parameters(prob_pred=0.2),
+        # Parameters(prob_pred=0.2, max_group_size=15),
+        # Parameters(prob_pred=0.2, max_group_size=50),
+        # Parameters(prob_pred=0.2, max_group_size=50, Ni=500),
         # Parameters(prob_pred=0.002),
         # Parameters(prob_pred=0.005),
         # Parameters(prob_pred=0.01),
         # Parameters(prob_pred=0.02),
         # Parameters(prob_pred=0.1),
-        # Parameters(max_group_size=15, Ni=500),
-        # Parameters(max_group_size=25, prob_pred=0.02, Ni=500),
-        # Parameters(max_group_size=25, Ni=500),
+        # Parameters(prob_pred=0.2, max_group_size=15, Ni=500),
+        # Parameters(prob_pred=0.2, max_group_size=25, prob_pred=0.02, Ni=500),
+        # Parameters(prob_pred=0.2, max_group_size=25, Ni=500),
         # Parameters(prob_pred=0.04),
         # Parameters(prob_pred=0.06),
         # Parameters(prob_pred=0.08),
+        # Parameters(prob_pred=0.2, max_group_size=15, Ni=500, maxf=1000),
+        # Parameters(prob_pred=0.2, max_group_size=25, Ni=500, maxf=1000),
+        # Parameters(prob_pred=0.2, max_group_size=50, Ni=500, maxf=1000),
+        # Parameters(prob_pred=0.02, e_gain=0.5),
+        # Parameters(prob_pred=0.02, e_gain=1.5),
+        # Parameters(prob_pred=0.02, e_gain=2),
+        # Parameters(prob_pred=0.06, e_gain=0.5),
+        # Parameters(prob_pred=0.06, e_gain=1.5),
+        # Parameters(prob_pred=0.06, e_gain=2),
+        # Parameters(prob_pred=0.08, e_gain=0.5),
+        # Parameters(prob_pred=0.08, e_gain=1.5),
+        # Parameters(prob_pred=0.08, e_gain=2),
+        # Parameters(prob_pred=0.1, e_gain=0.5),
+        # Parameters(prob_pred=0.1, e_gain=1.5),
+        # Parameters(prob_pred=0.1, e_gain=2),
+        # Parameters(prob_pred=0.2, e_gain=0.5),
+        # Parameters(prob_pred=0.2, e_gain=1.5),
+        # Parameters(prob_pred=0.2, e_gain=2),
     ]
     for i, params in enumerate(sim_params):
         param_start = time.time()

@@ -9,13 +9,14 @@ class Parameters:
     e_gain: int = 1  # energy units gained each time step in which the ith individual does not flee
     coef_false: float = 0.2  # coefficient that determines the prob of a false alarm (a smaller value than f_pred)
     maxf: int = 500  # number of generations to run the model through
-    prob_pred: float = 0.2
+    prob_pred: float = 0.02
     max_group_size: int = 25
+    cap_num_deaths: bool = False  # if True, then the number of prey that can get eaten per timestep by a predator is 1
 
 
 @dataclass
 class OutputParameters(Parameters):
-    group_bin_size: int = 5
+    group_bin_size: Optional[int] = None
 
 
 @dataclass
@@ -55,8 +56,11 @@ class Results:
     freq_true_flights_unbinned: List[float]
     freq_detected_pred_deaths_all: List[float]
     freq_nondetected_pred_deaths_all: List[float]
-    fitness_stat: List[Stat]
+    fitness_stat: List[
+        Stat
+    ]  # mean, var of the means/vars of each simulation, per generation
     trait_values: List[List[Stat]]
+    deaths_stat: List[Stat]
 
 
 @dataclass

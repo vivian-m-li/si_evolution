@@ -207,3 +207,87 @@ def plot_detected_nondetected_pred_deaths(
     plt.xlabel("Generation")
     plt.ylabel(f"Freq Death")
     plt.show()
+
+
+def get_steady_state_trait_value(values: List[Stat]) -> float:
+    return np.mean(np.array([x.mean for x in values[-50:]]))
+
+
+def plot_gain_to_pred_fitness(results: List[MultResults]) -> None:
+    plt.figure(figsize=(10, 6))
+    data = {}
+    for r in results:
+        x_val = r.params.e_gain / r.params.prob_pred
+        data[x_val] = get_steady_state_trait_value(r.results.fitness_stat)
+
+    x_vals = []
+    y_vals = []
+    for x_val in sorted(data):
+        x_vals.append(x_val)
+        y_vals.append(data[x_val])
+
+        plt.scatter(x_vals, y_vals)
+        plt.plot(x_vals, y_vals, linestyle="dashed")
+
+    plt.title(f"Fitness at different e_gain and prob_pred values")
+    plt.xlabel("e_gain/prob_pred")
+    plt.ylabel(f"Fitness")
+    plt.show()
+
+
+def plot_gain_to_pred_trait_vals(results: List[MultResults]) -> None:
+    plt.figure(figsize=(10, 6))
+    data = {}
+    for r in results:
+        x_val = r.params.e_gain / r.params.prob_pred
+        data[x_val] = []
+        for i, trait_vals in enumerate(r.results.trait_values):
+            data[x_val].append(get_steady_state_trait_value(trait_vals))
+
+    x_vals = []
+    y_vals = [[], [], []]
+    for x_val in sorted(data):
+        x_vals.append(x_val)
+        for i, y_val in enumerate(data[x_val]):
+            y_vals[i].append(y_val)
+
+    for i, label in enumerate(
+        [
+            "jumpiness",
+            "sociality",
+            "density dependence in sociality",
+        ]
+    ):
+        plt.scatter(x_vals, y_vals[i], label=label, color=COLOR_MAP[i])
+        plt.plot(x_vals, y_vals[i], linestyle="dashed", color=COLOR_MAP[i])
+
+    plt.legend()
+    plt.title(f"Trait Values at different e_gain and prob_pred values")
+    plt.xlabel("e_gain/prob_pred")
+    plt.ylabel(f"Trait Value")
+    plt.show()
+
+
+def plot_total_deaths_per_gen(results: List[MultResults], param: AnalysisParam) -> None:
+    plt.figure(figsize=(10, 6))
+
+    legend_elements = []
+    x = list(range(1, results[0].params.maxf + 1))
+    for i, r in enumerate(results):
+        color = COLOR_MAP[i]
+        plt.plot(
+            x,
+            [y.mean for y in r.results.deaths_stat],
+            color=color,
+        )
+        legend_elements.append(
+            Line2D([0], [0], color=color, label=param.func(r.params))
+        )
+
+    plt.legend(title=param.label, handles=legend_elements, loc="upper right")
+    plt.title(
+        f"Total Deaths from Predators At Varying {param.label}, prob_pred={results[0].params.prob_pred}"
+    )
+    plt.xlabel("Generation")
+    plt.ylabel(f"# Deaths")
+    plt.show()
