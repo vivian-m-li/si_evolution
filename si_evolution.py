@@ -150,6 +150,8 @@ def evo_fun(
                 prev_detect = 0  # true flights
                 eaten_detect_vec = []
                 eaten_nodetect_vec = []
+                poss_deaths_weighted: Dict[int, float] = {}  # indiv_id: prob_death
+                detected: Dict[int, bool] = {}  # indiv_id: detected
 
                 for i in range(len(subgroup)):
                     indiv_id = subgroup["individual"].values[i]
@@ -173,7 +175,6 @@ def evo_fun(
                     if flee or pred:
                         fit[indiv_idx, t] = fit[indiv_idx, t - 1]
 
-                    # TODO: cap num deaths - assign weights to p_detect and pick only 1 individual to eat
                     if pred and not flee:
                         p_detect_s = (
                             prev_detect * s_faith[indiv_idx]
@@ -185,31 +186,35 @@ def evo_fun(
                             p_detect_s
                         )
                         prev_detect += detect
+                        detected[indiv_id] = detect
 
                         if detect:
                             peaten_detect = 1 / ((len(subgroup) - prev_flee) + 10)
-                            eaten_detect = random_binomial(peaten_detect)
-                            eaten_detect_vec.append(eaten_detect)
+                            poss_deaths_weighted[indiv_id] = peaten_detect
                         else:
                             peaten_nodetect = 1 / (len(subgroup) - prev_flee)
-                            eaten_nodetect = random_binomial(peaten_nodetect)
-                            eaten_nodetect_vec.append(eaten_nodetect)
-
-                        if eaten_detect or eaten_nodetect:
-                            fit[indiv_idx, t] = 0
-                            indivs_dead.add(indiv_id)
-
-                        if eaten_detect:
-                            output.detected_pred_deaths[-1] += 1
-
-                        elif eaten_nodetect:
-                            output.nondetected_pred_deaths[-1] += 1
-
-                        else:
-                            fit[indiv_idx, t] = fit[indiv_idx, t - 1]
+                            poss_deaths_weighted[indiv_id] = peaten_nodetect
 
                     if not pred and not flee:
                         fit[indiv_idx, t] = fit[indiv_idx, t - 1] + e_gain
+
+                if len(poss_deaths_weighted) > 0:
+                    dead_indiv = random.choices(
+                        list(poss_deaths_weighted.keys()),
+                        weights=list(poss_deaths_weighted.values()),
+                        k=1,
+                    )[0]
+                    if detected[dead_indiv]:
+                        output.detected_pred_deaths[-1] += 1
+                    else:
+                        output.nondetected_pred_deaths[-1] += 1
+                    for indiv_id in poss_deaths_weighted.keys():
+                        indiv_idx = indiv_id - 1
+                        if indiv_id == dead_indiv:
+                            fit[indiv_idx, t] = 0
+                            indivs_dead.add(indiv_id)
+                        else:
+                            fit[indiv_idx, t] = fit[indiv_idx, t - 1]
 
                 flights0[group_idx, :] = [t, ddensity, prev_flee, prev_detect]
                 eaten_detect0[group_idx, :] = [

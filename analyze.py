@@ -83,6 +83,7 @@ def write_new_all_file(file_name):
             "maxf",
             "prob_pred",
             "max_group_size",
+            "cap_num_deaths",
         ]
     )
     results_file.close()
@@ -106,6 +107,7 @@ def write_output(directory: str, sim_id: int, output: SimOutput):
             output.parameters.maxf,
             output.parameters.prob_pred,
             output.parameters.max_group_size,
+            int(output.parameters.cap_num_deaths),
         ]
     )
     results_file.close()
@@ -181,6 +183,7 @@ def get_outputs(
             maxf,
             prob_pred,
             max_group_size,
+            cap_num_deaths,
         ) = cast_data_types(row)
         if params is not None and (
             params.Ni != Ni
@@ -190,6 +193,7 @@ def get_outputs(
             or params.maxf != maxf
             or params.prob_pred != prob_pred
             or params.max_group_size != max_group_size
+            or params.cap_num_deaths != bool(cap_num_deaths)
         ):
             continue
         df = pd.read_csv(f"{out_file_path}/{sim_id}.csv").to_numpy()
