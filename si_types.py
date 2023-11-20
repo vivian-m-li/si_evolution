@@ -11,7 +11,7 @@ class Parameters:
     maxf: int = 500  # number of generations to run the model through
     prob_pred: float = 0.02
     max_group_size: int = 25
-    cap_num_deaths: bool = False  # if True, then the number of prey that can get eaten per timestep by a predator is 1
+    cap_num_deaths: bool = True  # if True, then the number of prey that can get eaten per timestep by a predator is 1
 
 
 @dataclass
@@ -61,6 +61,7 @@ class Results:
     ]  # mean, var of the means/vars of each simulation, per generation
     trait_values: List[List[Stat]]
     deaths_stat: List[Stat]
+    avg_group_size: float
 
 
 @dataclass
@@ -78,4 +79,5 @@ class MultResults:
 @dataclass
 class AnalysisParam:
     label: str
-    func: Callable[[Parameters], float]
+    func: Callable[[Parameters, Optional[Results]], float]
+    label_func: Optional[Callable[[Parameters, Optional[Results]], str]] = None

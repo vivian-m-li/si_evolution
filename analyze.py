@@ -165,11 +165,10 @@ def write_output(directory: str, sim_id: int, output: SimOutput):
     sim_file.close()
 
 
-def get_outputs(
-    out_file_path: str, params: Optional[OutputParameters]
-) -> List[pd.DataFrame]:
-    sims = []
-
+def get_all_outputs(
+    out_file_path: str, all_params: List[OutputParameters]
+) -> List[List[pd.DataFrame]]:
+    sims: DefaultDict[int, List[pd.DataFrame]] = defaultdict(list)
     all_sims_file = open(f"{out_file_path}/all.csv", "r")
     reader_object = csv.reader(all_sims_file, delimiter=",")
     next(reader_object)
@@ -185,22 +184,22 @@ def get_outputs(
             max_group_size,
             cap_num_deaths,
         ) = cast_data_types(row)
-        if params is not None and (
-            params.Ni != Ni
-            or params.tf != tf
-            or params.e_gain != e_gain
-            or params.coef_false != coef_false
-            or params.maxf != maxf
-            or params.prob_pred != prob_pred
-            or params.max_group_size != max_group_size
-            or params.cap_num_deaths != bool(cap_num_deaths)
-        ):
-            continue
-        df = pd.read_csv(f"{out_file_path}/{sim_id}.csv").to_numpy()
-        sims.append(df)
+        for i, params in enumerate(all_params):
+            if (
+                params.Ni == Ni
+                and params.tf == tf
+                and params.e_gain == e_gain
+                and params.coef_false == coef_false
+                and params.maxf == maxf
+                and params.prob_pred == prob_pred
+                and params.max_group_size == max_group_size
+                and params.cap_num_deaths == bool(cap_num_deaths)
+            ):
+                df = pd.read_csv(f"{out_file_path}/{sim_id}.csv").to_numpy()
+                sims[i].append(df)
 
     all_sims_file.close()
-    return sims
+    return list(sims.values())
 
 
 def process_results(
@@ -215,6 +214,7 @@ def process_results(
     fitness_stat: List[Stat] = []
     trait_values: List[List[Stat]] = [[], [], []]
     deaths_stat: List[Stat] = []
+    all_group_sizes: List[Stat] = []
     for i in range(num_generations):
         freq_false_flight_by_group_size.append(defaultdict(list))
         freq_true_flight_by_group_size.append(defaultdict(list))
@@ -265,6 +265,7 @@ def process_results(
             freq_detected_pred_deaths_gen.append(freq_detected_pred_deaths)
             freq_nondetected_pred_deaths_gen.append(freq_nondetected_pred_deaths)
             all_deaths.append(total_deaths)
+            all_group_sizes.append(Stat(mean=group_size_mean, variance=group_size_var))
         freq_detected_pred_deaths_all.append(calc_mean(freq_detected_pred_deaths_gen))
         freq_nondetected_pred_deaths_all.append(
             calc_mean(freq_nondetected_pred_deaths_gen)
@@ -291,6 +292,8 @@ def process_results(
         deaths_stat.append(
             Stat(mean=calc_mean(all_deaths), variance=np.var(all_deaths))
         )
+
+    avg_group_size = round(np.mean(np.array([x.mean for x in all_group_sizes])), 2)
 
     freq_false_flights_unbinned: List[float] = []
     freq_true_flights_unbinned: List[float] = []
@@ -337,6 +340,7 @@ def process_results(
         fitness_stat,
         trait_values,
         deaths_stat,
+        avg_group_size,
     )
 
 
@@ -347,9 +351,10 @@ def mult_sim_analysis(
     plots: List[str],
     param: Optional[str] = None,
 ) -> None:
+    all_outputs = get_all_outputs(out_file_path, all_params)
     all_results: List[MultResults] = []
-    for params in all_params:
-        sim_outputs = get_outputs(out_file_path, params)
+    for i, params in enumerate(all_params):
+        sim_outputs = all_outputs[i]
         results = process_results(sim_outputs, params)
         all_results.append(MultResults(params, results))
 
@@ -376,8 +381,11 @@ def mult_sim_analysis(
         if "total_deaths_per_gen" in plots:
             plot_total_deaths_per_gen(all_results, analysis_param)
 
-    if "gain_to_pred_fitness" in plots:
-        plot_gain_to_pred_fitness(all_results)
+        if "final_fitness" in plots:
+            plot_final_fitness(all_results, analysis_param)
 
-    if "gain_to_pred_trait_vals" in plots:
-        plot_gain_to_pred_trait_vals(all_results)
+        if "final_trait_values" in plots:
+            plot_final_trait_values(all_results, analysis_param)
+
+        if "final_flight_freq" in plots:
+            plot_final_flight_freq(all_results, analysis_param)

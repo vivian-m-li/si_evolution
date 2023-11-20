@@ -198,6 +198,7 @@ def evo_fun(
                     if not pred and not flee:
                         fit[indiv_idx, t] = fit[indiv_idx, t - 1] + e_gain
 
+                # removed the previous code so now we're always capping the number of deaths
                 if len(poss_deaths_weighted) > 0:
                     dead_indiv = random.choices(
                         list(poss_deaths_weighted.keys()),

@@ -3,6 +3,7 @@ import matplotlib.gridspec as gridspec
 from matplotlib.lines import Line2D
 import numpy as np
 import pandas as pd
+from collections import defaultdict
 from si_types import *
 from constants import *
 
@@ -183,7 +184,7 @@ def plot_detected_nondetected_pred_deaths(
             linestyle=(0, (1, 5)),
         )
         legend_elements.append(
-            Line2D([0], [0], color=color, label=param.func(r.params))
+            Line2D([0], [0], color=color, label=param.func(r.params, r.results))
         )
 
     legend_elements.extend(
@@ -209,16 +210,25 @@ def plot_detected_nondetected_pred_deaths(
     plt.show()
 
 
-def get_steady_state_trait_value(values: List[Stat]) -> float:
-    return np.mean(np.array([x.mean for x in values[-50:]]))
+def get_steady_state_value(values: List[Stat] | List[float]) -> float:
+    last_fifty_vals = values[-50:]
+    if type(values[0]) == Stat:
+        last_fifty_vals = [x.mean for x in last_fifty_vals]
+    return np.mean(np.array(last_fifty_vals))
 
 
-def plot_gain_to_pred_fitness(results: List[MultResults]) -> None:
+def plot_final_fitness(results: List[MultResults], param: AnalysisParam) -> None:
     plt.figure(figsize=(10, 6))
     data = {}
+    labels = {}
     for r in results:
-        x_val = r.params.e_gain / r.params.prob_pred
-        data[x_val] = get_steady_state_trait_value(r.results.fitness_stat)
+        x_val = param.func(r.params, r.results)
+        data[x_val] = get_steady_state_value(r.results.fitness_stat)
+        labels[x_val] = (
+            param.label_func(r.params, r.results)
+            if param.label_func is not None
+            else ""
+        )
 
     x_vals = []
     y_vals = []
@@ -226,23 +236,31 @@ def plot_gain_to_pred_fitness(results: List[MultResults]) -> None:
         x_vals.append(x_val)
         y_vals.append(data[x_val])
 
-        plt.scatter(x_vals, y_vals)
-        plt.plot(x_vals, y_vals, linestyle="dashed")
+    plt.scatter(x_vals, y_vals)
+    plt.plot(x_vals, y_vals, linestyle="dashed")
+    for i, x_val in enumerate(x_vals):
+        plt.annotate(
+            labels[x_val],
+            (x_val, y_vals[i]),
+            textcoords="offset points",
+            xytext=(5, 5),
+            ha="center",
+        )
 
-    plt.title(f"Fitness at different e_gain and prob_pred values")
-    plt.xlabel("e_gain/prob_pred")
-    plt.ylabel(f"Fitness")
+    plt.title(f"Fitness at Varying {param.label}")
+    plt.xlabel(param.label)
+    plt.ylabel("Fitness")
     plt.show()
 
 
-def plot_gain_to_pred_trait_vals(results: List[MultResults]) -> None:
+def plot_final_trait_values(results: List[MultResults], param: AnalysisParam) -> None:
     plt.figure(figsize=(10, 6))
     data = {}
     for r in results:
-        x_val = r.params.e_gain / r.params.prob_pred
+        x_val = param.func(r.params, r.results)
         data[x_val] = []
         for i, trait_vals in enumerate(r.results.trait_values):
-            data[x_val].append(get_steady_state_trait_value(trait_vals))
+            data[x_val].append(get_steady_state_value(trait_vals))
 
     x_vals = []
     y_vals = [[], [], []]
@@ -262,9 +280,9 @@ def plot_gain_to_pred_trait_vals(results: List[MultResults]) -> None:
         plt.plot(x_vals, y_vals[i], linestyle="dashed", color=COLOR_MAP[i])
 
     plt.legend()
-    plt.title(f"Trait Values at different e_gain and prob_pred values")
-    plt.xlabel("e_gain/prob_pred")
-    plt.ylabel(f"Trait Value")
+    plt.title(f"Trait Values at Varying {param.label}")
+    plt.xlabel(param.label)
+    plt.ylabel("Trait Value")
     plt.show()
 
 
@@ -281,7 +299,7 @@ def plot_total_deaths_per_gen(results: List[MultResults], param: AnalysisParam) 
             color=color,
         )
         legend_elements.append(
-            Line2D([0], [0], color=color, label=param.func(r.params))
+            Line2D([0], [0], color=color, label=param.func(r.params, r.results))
         )
 
     plt.legend(title=param.label, handles=legend_elements, loc="upper right")
@@ -290,4 +308,40 @@ def plot_total_deaths_per_gen(results: List[MultResults], param: AnalysisParam) 
     )
     plt.xlabel("Generation")
     plt.ylabel(f"# Deaths")
+    plt.show()
+
+
+def plot_final_flight_freq(results: List[MultResults], param: AnalysisParam) -> None:
+    plt.figure(figsize=(10, 6))
+    data = defaultdict(dict)
+    for r in results:
+        x_val = param.func(r.params, r.results)
+        data[x_val]["false_flights"] = get_steady_state_value(
+            r.results.freq_false_flights_unbinned
+        )
+        data[x_val]["true_flights"] = get_steady_state_value(
+            r.results.freq_true_flights_unbinned
+        )
+
+    x_vals = []
+    freq_false_flights = []
+    freq_true_flights = []
+    for x_val in sorted(data):
+        x_vals.append(x_val)
+        freq_false_flights.append(data[x_val]["false_flights"])
+        freq_true_flights.append(data[x_val]["true_flights"])
+
+    plt.scatter(
+        x_vals, freq_false_flights, label="freq false flights", color=COLOR_MAP[0]
+    )
+    plt.plot(x_vals, freq_false_flights, linestyle="dashed", color=COLOR_MAP[0])
+    plt.scatter(
+        x_vals, freq_true_flights, label="freq true flights", color=COLOR_MAP[1]
+    )
+    plt.plot(x_vals, freq_true_flights, linestyle="dashed", color=COLOR_MAP[1])
+
+    plt.legend()
+    plt.title(f"Freq False/True Flights at Varying {param.label}")
+    plt.xlabel(param.label)
+    plt.ylabel("Freq False/True Flight")
     plt.show()
