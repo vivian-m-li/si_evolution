@@ -59,6 +59,8 @@ def init_outputs(params: Parameters) -> SimOutput:
         energetic_states=[],
         fitness=[],
         group_size=[],
+        pred_catch_rate=[],
+        pred_catch_by_group_size=[],
     )
 
 
@@ -128,6 +130,9 @@ def evo_fun(
         false_flights_by_group_size: DefaultDict[int, List[float]] = defaultdict(list)
         true_flights_by_group_size: DefaultDict[int, List[float]] = defaultdict(list)
         indivs_dead: Set[int] = set()
+        num_pred_attacks = 0
+        num_pred_by_group_size: DefaultDict[int, int] = defaultdict(lambda: 0)
+        num_caught_by_group_size: DefaultDict[int, int] = defaultdict(lambda: 0)
         for t in range(1, tf):
             indivs_alive = [i for i in list(range(1, Ni + 1)) if i not in indivs_dead]
             num_groups, groups_df = assign_groups(indivs_alive, max_group_size)
@@ -143,6 +148,7 @@ def evo_fun(
 
             for group_idx in range(num_groups):
                 pred = random_binomial(prob_pred)
+                num_pred_attacks += pred
                 subgroup = groups_df[groups_df["group_id"] == group_idx + 1]
                 ddensity = len(subgroup)
                 attacks_vec[group_idx] = pred
@@ -200,7 +206,14 @@ def evo_fun(
 
                 # removed the previous code so now we're always capping the number of deaths
                 indiv_eaten = False
-                for indiv_id, p_eaten in poss_deaths_weighted.items():
+                sorted_poss_deaths = dict(
+                    sorted(
+                        poss_deaths_weighted.items(),
+                        key=lambda item: item[1],
+                        reverse=True,
+                    )
+                )
+                for indiv_id, p_eaten in sorted_poss_deaths.items():
                     indiv_idx = indiv_id - 1
                     if not indiv_eaten:
                         eaten = random_binomial(p_eaten)
@@ -214,6 +227,9 @@ def evo_fun(
                                 output.nondetected_pred_deaths[-1] += 1
                             continue
                     fit[indiv_idx, t] = fit[indiv_idx, t - 1]
+
+                num_pred_by_group_size[ddensity] += pred
+                num_caught_by_group_size[ddensity] += int(indiv_eaten)
 
                 flights0[group_idx, :] = [t, ddensity, prev_flee, prev_detect]
                 eaten_detect0[group_idx, :] = [
@@ -245,6 +261,15 @@ def evo_fun(
             {
                 group_size: calc_mean(freq_true_flights)
                 for group_size, freq_true_flights in true_flights_by_group_size.items()
+            }
+        )
+        output.pred_catch_rate.append(len(indivs_dead) / max(num_pred_attacks, 1))
+
+        output.pred_catch_by_group_size.append(
+            {
+                group_size: num_caught_by_group_size.get(group_size, 0) / num_preds
+                for group_size, num_preds in num_pred_by_group_size.items()
+                if num_preds > 0
             }
         )
         flights_master.append(np.concatenate(flights))

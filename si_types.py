@@ -11,7 +11,6 @@ class Parameters:
     maxf: int = 500  # number of generations to run the model through
     prob_pred: float = 0.02
     max_group_size: int = 25
-    cap_num_deaths: bool = True  # if True, then the number of prey that can get eaten per timestep by a predator is 1
 
 
 @dataclass
@@ -40,6 +39,10 @@ class SimOutput:
     energetic_states: List[Stat]  # per generation
     fitness: List[Stat]  # per generation
     group_size: List[Stat]  # per generation
+    pred_catch_rate: List[float]  # per generation
+    pred_catch_by_group_size: List[
+        Dict[int, float]
+    ]  # num_caught/num_attacks mean per group size per per generation
 
 
 @dataclass

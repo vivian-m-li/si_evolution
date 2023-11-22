@@ -238,14 +238,14 @@ def plot_final_fitness(results: List[MultResults], param: AnalysisParam) -> None
 
     plt.scatter(x_vals, y_vals)
     plt.plot(x_vals, y_vals, linestyle="dashed")
-    # for i, x_val in enumerate(x_vals):
-    #     plt.annotate(
-    #         labels[x_val],
-    #         (x_val, y_vals[i]),
-    #         textcoords="offset points",
-    #         xytext=(5, 5),
-    #         ha="center",
-    #     )
+    for i, x_val in enumerate(x_vals):
+        plt.annotate(
+            labels[x_val],
+            (x_val, y_vals[i]),
+            textcoords="offset points",
+            xytext=(5, 5),
+            ha="center",
+        )
 
     plt.title(f"Fitness at Varying {param.label}")
     plt.xlabel(param.label)
@@ -314,6 +314,7 @@ def plot_total_deaths_per_gen(results: List[MultResults], param: AnalysisParam) 
 def plot_final_flight_freq(results: List[MultResults], param: AnalysisParam) -> None:
     plt.figure(figsize=(10, 6))
     data = defaultdict(dict)
+    labels = {}
     for r in results:
         x_val = param.func(r.params, r.results)
         data[x_val]["false_flights"] = get_steady_state_value(
@@ -321,6 +322,11 @@ def plot_final_flight_freq(results: List[MultResults], param: AnalysisParam) -> 
         )
         data[x_val]["true_flights"] = get_steady_state_value(
             r.results.freq_true_flights_unbinned
+        )
+        labels[x_val] = (
+            param.label_func(r.params, r.results)
+            if param.label_func is not None
+            else ""
         )
 
     x_vals = []
@@ -335,10 +341,27 @@ def plot_final_flight_freq(results: List[MultResults], param: AnalysisParam) -> 
         x_vals, freq_false_flights, label="freq false flights", color=COLOR_MAP[0]
     )
     plt.plot(x_vals, freq_false_flights, linestyle="dashed", color=COLOR_MAP[0])
+    for i, x_val in enumerate(x_vals):
+        plt.annotate(
+            labels[x_val],
+            (x_val, freq_false_flights[i]),
+            textcoords="offset points",
+            xytext=(5, 5),
+            ha="center",
+        )
+
     plt.scatter(
         x_vals, freq_true_flights, label="freq true flights", color=COLOR_MAP[1]
     )
     plt.plot(x_vals, freq_true_flights, linestyle="dashed", color=COLOR_MAP[1])
+    for i, x_val in enumerate(x_vals):
+        plt.annotate(
+            labels[x_val],
+            (x_val, freq_true_flights[i]),
+            textcoords="offset points",
+            xytext=(5, 5),
+            ha="center",
+        )
 
     plt.legend()
     plt.title(f"Freq False/True Flights at Varying {param.label}")

@@ -83,7 +83,6 @@ def write_new_all_file(file_name):
             "maxf",
             "prob_pred",
             "max_group_size",
-            "cap_num_deaths",
         ]
     )
     results_file.close()
@@ -107,7 +106,6 @@ def write_output(directory: str, sim_id: int, output: SimOutput):
             output.parameters.maxf,
             output.parameters.prob_pred,
             output.parameters.max_group_size,
-            int(output.parameters.cap_num_deaths),
         ]
     )
     results_file.close()
@@ -133,6 +131,8 @@ def write_output(directory: str, sim_id: int, output: SimOutput):
         "s_faith_var",
         "s_dd_mean",
         "s_dd_var",
+        "pred_catch_rate",
+        "pred_catch_by_group_size",
     ]
     writer_object.writerow(headers)
 
@@ -158,6 +158,8 @@ def write_output(directory: str, sim_id: int, output: SimOutput):
                 output.trait_values[g][1].variance,
                 output.trait_values[g][2].mean,
                 output.trait_values[g][2].variance,
+                output.pred_catch_rate[g],
+                str(output.pred_catch_by_group_size[g]),
             ]
         )
     writer_object.writerows(sim_results)
@@ -182,7 +184,6 @@ def get_all_outputs(
             maxf,
             prob_pred,
             max_group_size,
-            cap_num_deaths,
         ) = cast_data_types(row)
         for i, params in enumerate(all_params):
             if (
@@ -193,7 +194,6 @@ def get_all_outputs(
                 and params.maxf == maxf
                 and params.prob_pred == prob_pred
                 and params.max_group_size == max_group_size
-                and params.cap_num_deaths == bool(cap_num_deaths)
             ):
                 df = pd.read_csv(f"{out_file_path}/{sim_id}.csv").to_numpy()
                 sims[i].append(df)
@@ -247,6 +247,8 @@ def process_results(
                 s_faith_var,
                 s_dd_mean,
                 s_dd_var,
+                pred_catch_rate,
+                pred_catch_by_group_size,
             ) = cast_data_types(sim[i])
             for key, mean, var in [
                 ["fitness", fitness_mean, fitness_var],
