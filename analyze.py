@@ -168,7 +168,7 @@ def write_output(directory: str, sim_id: int, output: SimOutput):
 def get_all_outputs(
     out_file_path: str, all_params: List[OutputParameters]
 ) -> List[List[pd.DataFrame]]:
-    sims: DefaultDict[int, List[pd.DataFrame]] = defaultdict(list)
+    sims: List[List[pd.DataFrame]] = [[] for _ in range(len(all_params))]
     all_sims_file = open(f"{out_file_path}/all.csv", "r")
     reader_object = csv.reader(all_sims_file, delimiter=",")
     next(reader_object)
@@ -199,7 +199,7 @@ def get_all_outputs(
                 sims[i].append(df)
 
     all_sims_file.close()
-    return list(sims.values())
+    return sims
 
 
 def process_results(

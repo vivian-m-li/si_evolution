@@ -199,23 +199,21 @@ def evo_fun(
                         fit[indiv_idx, t] = fit[indiv_idx, t - 1] + e_gain
 
                 # removed the previous code so now we're always capping the number of deaths
-                if len(poss_deaths_weighted) > 0:
-                    dead_indiv = random.choices(
-                        list(poss_deaths_weighted.keys()),
-                        weights=list(poss_deaths_weighted.values()),
-                        k=1,
-                    )[0]
-                    if detected[dead_indiv]:
-                        output.detected_pred_deaths[-1] += 1
-                    else:
-                        output.nondetected_pred_deaths[-1] += 1
-                    for indiv_id in poss_deaths_weighted.keys():
-                        indiv_idx = indiv_id - 1
-                        if indiv_id == dead_indiv:
+                indiv_eaten = False
+                for indiv_id, p_eaten in poss_deaths_weighted.items():
+                    indiv_idx = indiv_id - 1
+                    if not indiv_eaten:
+                        eaten = random_binomial(p_eaten)
+                        if eaten:
+                            indiv_eaten = True
                             fit[indiv_idx, t] = 0
                             indivs_dead.add(indiv_id)
-                        else:
-                            fit[indiv_idx, t] = fit[indiv_idx, t - 1]
+                            if detected[indiv_id]:
+                                output.detected_pred_deaths[-1] += 1
+                            else:
+                                output.nondetected_pred_deaths[-1] += 1
+                            continue
+                    fit[indiv_idx, t] = fit[indiv_idx, t - 1]
 
                 flights0[group_idx, :] = [t, ddensity, prev_flee, prev_detect]
                 eaten_detect0[group_idx, :] = [

@@ -66,7 +66,7 @@ def plot_flight_freq_by_group_size(
         f"Frequency of {flight_type} Flights Across Generations, Max Group Size = {params.max_group_size}"
     )
     plt.xlabel("Generation")
-    plt.ylabel(f"Freq {flight_type} Flight")
+    plt.ylabel(f"Proportion of Group Fleeing ({flight_type})")
     plt.show()
 
 
@@ -143,7 +143,7 @@ def plot_avg_flight(
         f"Average Frequency of {flight_type} Flights Across Generations At Varying {param.label}"
     )
     plt.xlabel("Generation")
-    plt.ylabel(f"Freq {flight_type} Flight")
+    plt.ylabel(f"Proportion of Group Fleeing ({flight_type})")
     plt.show()
 
 
@@ -238,14 +238,14 @@ def plot_final_fitness(results: List[MultResults], param: AnalysisParam) -> None
 
     plt.scatter(x_vals, y_vals)
     plt.plot(x_vals, y_vals, linestyle="dashed")
-    for i, x_val in enumerate(x_vals):
-        plt.annotate(
-            labels[x_val],
-            (x_val, y_vals[i]),
-            textcoords="offset points",
-            xytext=(5, 5),
-            ha="center",
-        )
+    # for i, x_val in enumerate(x_vals):
+    #     plt.annotate(
+    #         labels[x_val],
+    #         (x_val, y_vals[i]),
+    #         textcoords="offset points",
+    #         xytext=(5, 5),
+    #         ha="center",
+    #     )
 
     plt.title(f"Fitness at Varying {param.label}")
     plt.xlabel(param.label)

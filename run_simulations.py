@@ -57,7 +57,9 @@ if __name__ == "__main__":
     start = time.time()
 
     num_simulations = 100
-    sim_params = []
+    sim_params = [
+        Parameters(prob_pred=0.1),
+    ]
     for i, params in enumerate(sim_params):
         param_start = time.time()
         run_si_evolution_sims(param_start, params, num_simulations)
