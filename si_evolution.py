@@ -263,7 +263,9 @@ def evo_fun(
                 for group_size, freq_true_flights in true_flights_by_group_size.items()
             }
         )
-        output.pred_catch_rate.append(len(indivs_dead) / max(num_pred_attacks, 1))
+        output.pred_catch_rate.append(
+            len(indivs_dead) / max(num_pred_attacks, 1)
+        )  # TODO: save None if num_pred_attacks is none
 
         output.pred_catch_by_group_size.append(
             {

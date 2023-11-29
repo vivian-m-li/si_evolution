@@ -63,8 +63,10 @@ class Results:
         Stat
     ]  # mean, var of the means/vars of each simulation, per generation
     trait_values: List[List[Stat]]
-    deaths_stat: List[Stat]
     avg_group_size: float
+    num_groups_per_gen: List[Stat]
+    deaths_stat: List[Stat]
+    pred_catch_stat: List[Stat]
 
 
 @dataclass

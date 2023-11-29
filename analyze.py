@@ -214,6 +214,8 @@ def process_results(
     fitness_stat: List[Stat] = []
     trait_values: List[List[Stat]] = [[], [], []]
     deaths_stat: List[Stat] = []
+    num_groups_per_gen: List[Stat] = []
+    pred_catch_stat: List[Stat] = []
     all_group_sizes: List[Stat] = []
     for i in range(num_generations):
         freq_false_flight_by_group_size.append(defaultdict(list))
@@ -226,7 +228,9 @@ def process_results(
             "s_faith": GroupStats(means=[], vars=[]),
             "s_dd": GroupStats(means=[], vars=[]),
         }
+        num_groups: List[float] = []
         all_deaths: List[int] = []
+        all_catches: List[float] = []
         for sim in sim_outputs:
             (
                 gen,
@@ -266,8 +270,10 @@ def process_results(
                 freq_true_flight_by_group_size[-1][group_size].append(freq_true_flight)
             freq_detected_pred_deaths_gen.append(freq_detected_pred_deaths)
             freq_nondetected_pred_deaths_gen.append(freq_nondetected_pred_deaths)
-            all_deaths.append(total_deaths)
             all_group_sizes.append(Stat(mean=group_size_mean, variance=group_size_var))
+            num_groups.append(params.Ni / group_size_mean)
+            all_deaths.append(total_deaths)
+            all_catches.append(pred_catch_rate)
         freq_detected_pred_deaths_all.append(calc_mean(freq_detected_pred_deaths_gen))
         freq_nondetected_pred_deaths_all.append(
             calc_mean(freq_nondetected_pred_deaths_gen)
@@ -291,8 +297,14 @@ def process_results(
                     ),
                 )
             )
+        num_groups_per_gen.append(
+            Stat(mean=calc_mean(num_groups), variance=np.var(num_groups))
+        )
         deaths_stat.append(
             Stat(mean=calc_mean(all_deaths), variance=np.var(all_deaths))
+        )
+        pred_catch_stat.append(
+            Stat(mean=calc_mean(all_catches), variance=np.var(all_catches))
         )
 
     avg_group_size = round(np.mean(np.array([x.mean for x in all_group_sizes])), 2)
@@ -341,8 +353,10 @@ def process_results(
         freq_nondetected_pred_deaths_all,
         fitness_stat,
         trait_values,
-        deaths_stat,
         avg_group_size,
+        num_groups_per_gen,
+        deaths_stat,
+        pred_catch_stat,
     )
 
 
@@ -393,3 +407,9 @@ def mult_sim_analysis(
 
         if "final_flight_freq" in plots:
             plot_final_flight_freq(all_results, analysis_param)
+
+        if "kills_per_visits_per_gen" in plots:
+            plot_kills_per_visits_per_gen(all_results, analysis_param)
+
+        if "final_kills_per_visits" in plots:
+            plot_final_kills_per_visits(all_results, analysis_param)

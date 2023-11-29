@@ -303,9 +303,7 @@ def plot_total_deaths_per_gen(results: List[MultResults], param: AnalysisParam) 
         )
 
     plt.legend(title=param.label, handles=legend_elements, loc="upper right")
-    plt.title(
-        f"Total Deaths from Predators At Varying {param.label}, prob_pred={results[0].params.prob_pred}"
-    )
+    plt.title(f"Total Deaths from Predators At Varying {param.label}")
     plt.xlabel("Generation")
     plt.ylabel(f"# Deaths")
     plt.show()
@@ -359,4 +357,63 @@ def plot_final_flight_freq(results: List[MultResults], param: AnalysisParam) -> 
     plt.title(f"Freq False/True Flights at Varying {param.label}")
     plt.xlabel(param.label)
     plt.ylabel("Freq False/True Flight")
+    plt.show()
+
+
+def plot_kills_per_visits_per_gen(results: List[MultResults], param: AnalysisParam):
+    plt.figure(figsize=(10, 6))
+
+    legend_elements = []
+    x = list(range(1, results[0].params.maxf + 1))
+    for i, r in enumerate(results):
+        color = COLOR_MAP[i]
+        plt.plot(
+            x,
+            [y.mean for y in r.results.pred_catch_stat],
+            color=color,
+        )
+        legend_elements.append(
+            Line2D([0], [0], color=color, label=param.func(r.params, r.results))
+        )
+
+    plt.legend(title=param.label, handles=legend_elements, loc="upper right")
+    plt.title(f"Predator Catch Rate At Varying {param.label}")
+    plt.xlabel("Generation")
+    plt.ylabel(f"Catch Rate (# Kills/# Visits)")
+    plt.show()
+
+
+def plot_final_kills_per_visits(results: List[MultResults], param: AnalysisParam):
+    plt.figure(figsize=(10, 6))
+    data = {}
+    labels = {}
+    for r in results:
+        x_val = param.func(r.params, r.results)
+        data[x_val] = get_steady_state_value(r.results.pred_catch_stat)
+        labels[x_val] = (
+            param.label_func(r.params, r.results)
+            if param.label_func is not None
+            else ""
+        )
+
+    x_vals = []
+    y_vals = []
+    for x_val in sorted(data):
+        x_vals.append(x_val)
+        y_vals.append(data[x_val])
+
+    plt.scatter(x_vals, y_vals)
+    plt.plot(x_vals, y_vals, linestyle="dashed")
+    for i, x_val in enumerate(x_vals):
+        plt.annotate(
+            labels[x_val],
+            (x_val, y_vals[i]),
+            textcoords="offset points",
+            xytext=(5, 5),
+            ha="center",
+        )
+
+    plt.title(f"Predator Catch Rate at Varying {param.label}")
+    plt.xlabel(param.label)
+    plt.ylabel("Catch Rate (# Kills/# Visits)")
     plt.show()

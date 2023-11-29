@@ -9,7 +9,7 @@ COLOR_MAP = [x for y in [cm.Set2.colors, cm.Set1.colors] for x in y]
 
 PARAM_FUNCS = {
     "prob_pred": AnalysisParam(
-        label="Prob of Predation", func=lambda p, r=None: p.prob_pred
+        label="Prob of Visitation", func=lambda p, r=None: p.prob_pred
     ),
     "max_group_size": AnalysisParam(
         label="Max Group Size", func=lambda p, r=None: p.max_group_size
@@ -23,7 +23,7 @@ PARAM_FUNCS = {
     "avg_group_size": AnalysisParam(
         label="Average Group Size",
         func=lambda p, r: r.avg_group_size,
-        label_func=lambda p, r=None: f"Ni={p.Ni}",
+        # label_func=lambda p, r=None: f"Ni={p.Ni}",
     ),
 }
 
@@ -75,4 +75,8 @@ prev_sim_params = [
     Parameters(prob_pred=0.2, max_group_size=30),
     Parameters(prob_pred=0.2, max_group_size=40),
     Parameters(prob_pred=0.2, max_group_size=100),
+    Parameters(prob_pred=0.12),
+    Parameters(prob_pred=0.14),
+    Parameters(prob_pred=0.16),
+    Parameters(prob_pred=0.18),
 ]
