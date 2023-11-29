@@ -357,6 +357,8 @@ def mult_sim_analysis(
     all_results: List[MultResults] = []
     for i, params in enumerate(all_params):
         sim_outputs = all_outputs[i]
+        if len(sim_outputs) == 0:
+            continue
         results = process_results(sim_outputs, params)
         all_results.append(MultResults(params, results))
 

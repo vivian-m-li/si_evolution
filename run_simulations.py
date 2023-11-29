@@ -57,42 +57,7 @@ if __name__ == "__main__":
     start = time.time()
 
     num_simulations = 100
-    sim_params = [
-        Parameters(prob_pred=0.002),
-        Parameters(prob_pred=0.005),
-        Parameters(prob_pred=0.01),
-        Parameters(prob_pred=0.04),
-        Parameters(prob_pred=0.06),
-        Parameters(prob_pred=0.08),
-        Parameters(prob_pred=0.1),
-        Parameters(prob_pred=0.02, max_group_size=15),
-        Parameters(prob_pred=0.02, max_group_size=15, Ni=500),
-        Parameters(prob_pred=0.02, max_group_size=25),
-        Parameters(prob_pred=0.02, max_group_size=25, Ni=500),
-        Parameters(prob_pred=0.02, max_group_size=50),
-        Parameters(prob_pred=0.02, max_group_size=50, Ni=500),
-        Parameters(prob_pred=0.2, max_group_size=15),
-        Parameters(prob_pred=0.2, max_group_size=15, Ni=500),
-        Parameters(prob_pred=0.2, max_group_size=25),
-        Parameters(prob_pred=0.2, max_group_size=25, Ni=500),
-        Parameters(prob_pred=0.2, max_group_size=50),
-        Parameters(prob_pred=0.2, max_group_size=50, Ni=500),
-        Parameters(prob_pred=0.02, e_gain=0.5),
-        Parameters(prob_pred=0.02, e_gain=1.5),
-        Parameters(prob_pred=0.02, e_gain=2),
-        Parameters(prob_pred=0.06, e_gain=0.5),
-        Parameters(prob_pred=0.06, e_gain=1.5),
-        Parameters(prob_pred=0.06, e_gain=2),
-        Parameters(prob_pred=0.08, e_gain=0.5),
-        Parameters(prob_pred=0.08, e_gain=1.5),
-        Parameters(prob_pred=0.08, e_gain=2),
-        Parameters(prob_pred=0.1, e_gain=0.5),
-        Parameters(prob_pred=0.1, e_gain=1.5),
-        Parameters(prob_pred=0.1, e_gain=2),
-        Parameters(prob_pred=0.2, e_gain=0.5),
-        Parameters(prob_pred=0.2, e_gain=1.5),
-        Parameters(prob_pred=0.2, e_gain=2),
-    ]
+    sim_params = []
     for i, params in enumerate(sim_params):
         param_start = time.time()
         run_si_evolution_sims(param_start, params, num_simulations)

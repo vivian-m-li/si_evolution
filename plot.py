@@ -354,14 +354,6 @@ def plot_final_flight_freq(results: List[MultResults], param: AnalysisParam) -> 
         x_vals, freq_true_flights, label="freq true flights", color=COLOR_MAP[1]
     )
     plt.plot(x_vals, freq_true_flights, linestyle="dashed", color=COLOR_MAP[1])
-    for i, x_val in enumerate(x_vals):
-        plt.annotate(
-            labels[x_val],
-            (x_val, freq_true_flights[i]),
-            textcoords="offset points",
-            xytext=(5, 5),
-            ha="center",
-        )
 
     plt.legend()
     plt.title(f"Freq False/True Flights at Varying {param.label}")

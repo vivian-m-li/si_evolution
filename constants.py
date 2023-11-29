@@ -23,7 +23,7 @@ PARAM_FUNCS = {
     "avg_group_size": AnalysisParam(
         label="Average Group Size",
         func=lambda p, r: r.avg_group_size,
-        label_func=lambda p, r=None: str(p.Ni),
+        label_func=lambda p, r=None: f"Ni={p.Ni}",
     ),
 }
 
@@ -62,4 +62,17 @@ prev_sim_params = [
     Parameters(prob_pred=0.2, e_gain=0.5),
     Parameters(prob_pred=0.2, e_gain=1.5),
     Parameters(prob_pred=0.2, e_gain=2),
+    Parameters(prob_pred=0),
+    Parameters(prob_pred=0.02, max_group_size=5),
+    Parameters(prob_pred=0.02, max_group_size=10),
+    Parameters(prob_pred=0.02, max_group_size=20),
+    Parameters(prob_pred=0.02, max_group_size=30),
+    Parameters(prob_pred=0.02, max_group_size=40),
+    Parameters(prob_pred=0.02, max_group_size=100),
+    Parameters(prob_pred=0.2, max_group_size=5),
+    Parameters(prob_pred=0.2, max_group_size=10),
+    Parameters(prob_pred=0.2, max_group_size=20),
+    Parameters(prob_pred=0.2, max_group_size=30),
+    Parameters(prob_pred=0.2, max_group_size=40),
+    Parameters(prob_pred=0.2, max_group_size=100),
 ]
