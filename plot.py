@@ -8,6 +8,11 @@ from si_types import *
 from constants import *
 
 
+def get_color(index: int, num_colors: int) -> Tuple[float, float, float]:
+    cmap_blues = plt.get_cmap("Blues")
+    return cmap_blues(0.3 + index / num_colors)
+
+
 def plot_traits(trait_mean, trait_sd, fit_traits_gen):
     traits = ["jumpiness", "sociality", "density dependence in sociality"]
     out_ls = []
@@ -50,14 +55,15 @@ def plot_flight_freq_by_group_size(
     plt.figure(figsize=(10, 6))
 
     x = list(range(1, params.maxf + 1))
-    for bin_idx in range(len(flights_binned[0])):
+    num_bins = len(flights_binned[0])
+    for bin_idx in range(num_bins):
         y = [gen[bin_idx] for gen in flights_binned]
         bin_lower_bound = bin_idx * params.group_bin_size
         plt.plot(
             x,
             y,
             label=f"{bin_lower_bound + 1}-{bin_lower_bound + params.group_bin_size}",
-            color=COLOR_MAP[bin_idx],
+            color=get_color(bin_idx, num_bins),
         )
     plt.plot(x, flights_unbinned, label="All group sizes", color="#555555")
 
@@ -136,7 +142,15 @@ def plot_avg_flight(
     x = list(range(1, results[0][0].maxf + 1))
     for i, r in enumerate(results):
         params, flights = r
-        plt.plot(x, flights, label=param.func(params), color=COLOR_MAP[i])
+        plt.plot(
+            x,
+            flights,
+            label=param.func(params),
+            color=get_color(
+                i,
+                len(results),
+            ),
+        )
 
     plt.legend(title=param.label, loc="upper right")
     plt.title(
@@ -171,7 +185,7 @@ def plot_detected_nondetected_pred_deaths(
     legend_elements = []
     x = list(range(1, results[0].params.maxf + 1))
     for i, r in enumerate(results):
-        color = COLOR_MAP[i]
+        color = get_color(i, len(results))
         plt.plot(
             x,
             r.results.freq_detected_pred_deaths_all,
@@ -292,7 +306,7 @@ def plot_total_deaths_per_gen(results: List[MultResults], param: AnalysisParam) 
     legend_elements = []
     x = list(range(1, results[0].params.maxf + 1))
     for i, r in enumerate(results):
-        color = COLOR_MAP[i]
+        color = get_color(i, len(results))
         plt.plot(
             x,
             [y.mean for y in r.results.deaths_stat],
@@ -366,7 +380,7 @@ def plot_kills_per_visits_per_gen(results: List[MultResults], param: AnalysisPar
     legend_elements = []
     x = list(range(1, results[0].params.maxf + 1))
     for i, r in enumerate(results):
-        color = COLOR_MAP[i]
+        color = get_color(i, len(results))
         plt.plot(
             x,
             [y.mean for y in r.results.pred_catch_stat],
