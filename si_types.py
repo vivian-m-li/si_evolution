@@ -63,7 +63,7 @@ class Results:
         Stat
     ]  # mean, var of the means/vars of each simulation, per generation
     trait_values: List[List[Stat]]
-    avg_group_size: float
+    avg_group_size: Stat
     num_groups_per_gen: List[Stat]
     deaths_stat: List[Stat]
     pred_catch_stat: List[Stat]
@@ -86,3 +86,6 @@ class AnalysisParam:
     label: str
     func: Callable[[Parameters, Optional[Results]], float]
     label_func: Optional[Callable[[Parameters, Optional[Results]], str]] = None
+    error_func: Optional[
+        Callable[[Parameters, Optional[Results]], Tuple[float, float]]
+    ] = None

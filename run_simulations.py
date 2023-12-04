@@ -58,10 +58,18 @@ if __name__ == "__main__":
 
     num_simulations = 100
     sim_params = [
-        Parameters(prob_pred=0.12),
-        Parameters(prob_pred=0.14),
-        Parameters(prob_pred=0.16),
-        Parameters(prob_pred=0.18),
+        Parameters(prob_pred=0.02, max_group_size=5, Ni=500),
+        Parameters(prob_pred=0.02, max_group_size=10, Ni=500),
+        Parameters(prob_pred=0.02, max_group_size=20, Ni=500),
+        Parameters(prob_pred=0.02, max_group_size=30, Ni=500),
+        Parameters(prob_pred=0.02, max_group_size=40, Ni=500),
+        Parameters(prob_pred=0.02, max_group_size=100, Ni=500),
+        Parameters(prob_pred=0.2, max_group_size=5, Ni=500),
+        Parameters(prob_pred=0.2, max_group_size=10, Ni=500),
+        Parameters(prob_pred=0.2, max_group_size=20, Ni=500),
+        Parameters(prob_pred=0.2, max_group_size=30, Ni=500),
+        Parameters(prob_pred=0.2, max_group_size=40, Ni=500),
+        Parameters(prob_pred=0.2, max_group_size=100, Ni=500),
     ]
     for i, params in enumerate(sim_params):
         param_start = time.time()

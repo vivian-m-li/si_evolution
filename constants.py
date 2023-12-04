@@ -1,3 +1,4 @@
+import numpy as np
 import matplotlib.cm as cm
 from si_types import *
 
@@ -22,8 +23,19 @@ PARAM_FUNCS = {
     ),
     "avg_group_size": AnalysisParam(
         label="Average Group Size",
-        func=lambda p, r: r.avg_group_size,
-        # label_func=lambda p, r=None: f"Ni={p.Ni}",
+        func=lambda p, r: r.avg_group_size.mean,
+    ),
+    "pop_size": AnalysisParam(
+        label="Average Group Size",
+        func=lambda p, r: r.avg_group_size.mean,
+        error_func=lambda p, r: (
+            max(r.avg_group_size.mean - (1.96 * np.sqrt(r.avg_group_size.variance)), 1),
+            min(
+                r.avg_group_size.mean + (1.96 * np.sqrt(r.avg_group_size.variance)),
+                p.max_group_size,
+            ),
+        ),
+        label_func=lambda p, r=None: f"Ni={p.Ni}",
     ),
 }
 
@@ -79,4 +91,16 @@ prev_sim_params = [
     Parameters(prob_pred=0.14),
     Parameters(prob_pred=0.16),
     Parameters(prob_pred=0.18),
+    Parameters(prob_pred=0.02, max_group_size=5, Ni=500),
+    Parameters(prob_pred=0.02, max_group_size=10, Ni=500),
+    Parameters(prob_pred=0.02, max_group_size=20, Ni=500),
+    Parameters(prob_pred=0.02, max_group_size=30, Ni=500),
+    Parameters(prob_pred=0.02, max_group_size=40, Ni=500),
+    Parameters(prob_pred=0.02, max_group_size=100, Ni=500),
+    Parameters(prob_pred=0.2, max_group_size=5, Ni=500),
+    Parameters(prob_pred=0.2, max_group_size=10, Ni=500),
+    Parameters(prob_pred=0.2, max_group_size=20, Ni=500),
+    Parameters(prob_pred=0.2, max_group_size=30, Ni=500),
+    Parameters(prob_pred=0.2, max_group_size=40, Ni=500),
+    Parameters(prob_pred=0.2, max_group_size=100, Ni=500),
 ]

@@ -307,7 +307,12 @@ def process_results(
             Stat(mean=calc_mean(all_catches), variance=np.var(all_catches))
         )
 
-    avg_group_size = round(np.mean(np.array([x.mean for x in all_group_sizes])), 2)
+    all_group_size_means = np.array([x.mean for x in all_group_sizes])
+    all_group_size_vars = np.array([x.variance for x in all_group_sizes])
+    avg_group_size = Stat(
+        mean=round(np.mean(all_group_size_means), 2),
+        variance=np.mean(all_group_size_vars),
+    )
 
     freq_false_flights_unbinned: List[float] = []
     freq_true_flights_unbinned: List[float] = []

@@ -220,6 +220,7 @@ def plot_detected_nondetected_pred_deaths(
         f"Detected and Nondetected Deaths from Predators At Varying {param.label}"
     )
     plt.xlabel("Generation")
+    plt.ylim(-0.025, 1.025)
     plt.ylabel(f"Freq Death")
     plt.show()
 
@@ -327,6 +328,7 @@ def plot_final_flight_freq(results: List[MultResults], param: AnalysisParam) -> 
     plt.figure(figsize=(10, 6))
     data = defaultdict(dict)
     labels = {}
+    x_bounds = {}
     for r in results:
         x_val = param.func(r.params, r.results)
         data[x_val]["false_flights"] = get_steady_state_value(
@@ -339,6 +341,11 @@ def plot_final_flight_freq(results: List[MultResults], param: AnalysisParam) -> 
             param.label_func(r.params, r.results)
             if param.label_func is not None
             else ""
+        )
+        x_bounds[x_val] = (
+            param.error_func(r.params, r.results)
+            if param.error_func is not None
+            else None
         )
 
     x_vals = []
@@ -354,13 +361,21 @@ def plot_final_flight_freq(results: List[MultResults], param: AnalysisParam) -> 
     )
     plt.plot(x_vals, freq_false_flights, linestyle="dashed", color=COLOR_MAP[0])
     for i, x_val in enumerate(x_vals):
-        plt.annotate(
-            labels[x_val],
-            (x_val, freq_false_flights[i]),
-            textcoords="offset points",
-            xytext=(5, 5),
-            ha="center",
-        )
+        if param.label_func:
+            plt.annotate(
+                labels[x_val],
+                (x_val, freq_false_flights[i]),
+                textcoords="offset points",
+                xytext=(5, 5),
+                ha="center",
+            )
+        # if param.error_func:
+        #     plt.plot(
+        #         [x_bounds[x_val][0], x_bounds[x_val][1]],
+        #         [freq_false_flights[i], freq_false_flights[i]],
+        #         color="red",
+        #         linestyle="--",
+        #     )
 
     plt.scatter(
         x_vals, freq_true_flights, label="freq true flights", color=COLOR_MAP[1]
@@ -370,6 +385,7 @@ def plot_final_flight_freq(results: List[MultResults], param: AnalysisParam) -> 
     plt.legend()
     plt.title(f"Freq False/True Flights at Varying {param.label}")
     plt.xlabel(param.label)
+    plt.ylim(-0.025, 1.025)
     plt.ylabel("Freq False/True Flight")
     plt.show()
 
@@ -393,6 +409,7 @@ def plot_kills_per_visits_per_gen(results: List[MultResults], param: AnalysisPar
     plt.legend(title=param.label, handles=legend_elements, loc="upper right")
     plt.title(f"Predator Catch Rate At Varying {param.label}")
     plt.xlabel("Generation")
+    plt.ylim(-0.025, 1.025)
     plt.ylabel(f"Catch Rate (# Kills/# Visits)")
     plt.show()
 
@@ -429,5 +446,6 @@ def plot_final_kills_per_visits(results: List[MultResults], param: AnalysisParam
 
     plt.title(f"Predator Catch Rate at Varying {param.label}")
     plt.xlabel(param.label)
+    plt.ylim(-0.025, 1.025)
     plt.ylabel("Catch Rate (# Kills/# Visits)")
     plt.show()
