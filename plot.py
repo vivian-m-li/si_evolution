@@ -399,7 +399,7 @@ def plot_kills_per_visits_per_gen(results: List[MultResults], param: AnalysisPar
         color = get_color(i, len(results))
         plt.plot(
             x,
-            [y.mean for y in r.results.pred_catch_stat],
+            [y.mean * r.params.prob_pred for y in r.results.pred_catch_stat],
             color=color,
         )
         legend_elements.append(
@@ -420,7 +420,9 @@ def plot_final_kills_per_visits(results: List[MultResults], param: AnalysisParam
     labels = {}
     for r in results:
         x_val = param.func(r.params, r.results)
-        data[x_val] = get_steady_state_value(r.results.pred_catch_stat)
+        data[x_val] = (
+            get_steady_state_value(r.results.pred_catch_stat) * r.params.prob_pred
+        )
         labels[x_val] = (
             param.label_func(r.params, r.results)
             if param.label_func is not None

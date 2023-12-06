@@ -11,7 +11,10 @@ from typing import Optional, List
 
 
 def run_sim_batch(
-    start_sim_id: int, num_sims: int, params: Parameters, start_time: Optional[float]
+    start_sim_id: int,
+    num_sims: int,
+    params: Parameters,
+    start_time: Optional[float],
 ):
     for i in range(start_sim_id, start_sim_id + num_sims):
         start = time.time()
@@ -25,7 +28,11 @@ def run_sim_batch(
             )
 
 
-def run_si_evolution_sims(start_time: float, params: Parameters, num_simulations: int):
+def run_si_evolution_sims(
+    start_time: float,
+    params: Parameters,
+    num_simulations: int,
+):
     cpu_count = multiprocessing.cpu_count()
     p = Pool(cpu_count)
     args = []
@@ -57,20 +64,7 @@ if __name__ == "__main__":
     start = time.time()
 
     num_simulations = 100
-    sim_params = [
-        Parameters(prob_pred=0.02, max_group_size=5, Ni=500),
-        Parameters(prob_pred=0.02, max_group_size=10, Ni=500),
-        Parameters(prob_pred=0.02, max_group_size=20, Ni=500),
-        Parameters(prob_pred=0.02, max_group_size=30, Ni=500),
-        Parameters(prob_pred=0.02, max_group_size=40, Ni=500),
-        Parameters(prob_pred=0.02, max_group_size=100, Ni=500),
-        Parameters(prob_pred=0.2, max_group_size=5, Ni=500),
-        Parameters(prob_pred=0.2, max_group_size=10, Ni=500),
-        Parameters(prob_pred=0.2, max_group_size=20, Ni=500),
-        Parameters(prob_pred=0.2, max_group_size=30, Ni=500),
-        Parameters(prob_pred=0.2, max_group_size=40, Ni=500),
-        Parameters(prob_pred=0.2, max_group_size=100, Ni=500),
-    ]
+    sim_params = []
     for i, params in enumerate(sim_params):
         param_start = time.time()
         run_si_evolution_sims(param_start, params, num_simulations)

@@ -39,6 +39,7 @@ class SimOutput:
     energetic_states: List[Stat]  # per generation
     fitness: List[Stat]  # per generation
     group_size: List[Stat]  # per generation
+    all_group_sizes: List[int]
     pred_catch_rate: List[float]  # per generation
     pred_catch_by_group_size: List[
         Dict[int, float]

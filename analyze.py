@@ -43,15 +43,12 @@ def cast_data_types(row: List[str]) -> List[Any]:
             value = ast.literal_eval(x)
             if isinstance(value, dict):
                 data.append(value)
+            elif isinstance(value, list):
+                data.append(value)
             else:
                 data.append(eval_int_float(x))
         except (ValueError, SyntaxError):
-            try:
-                data.append(eval_int_float(x))
-            except Exception:
-                import pdb
-
-                pdb.set_trace()
+            data.append(eval_int_float(x))
     return data
 
 
@@ -121,6 +118,7 @@ def write_output(directory: str, sim_id: int, output: SimOutput):
         "freq_nondetected_pred_deaths",
         "group_size_mean",
         "group_size_var",
+        "all_group_sizes",
         "energetic_states_mean",
         "energetic_states_var",
         "fitness_mean",
@@ -148,6 +146,7 @@ def write_output(directory: str, sim_id: int, output: SimOutput):
                 output.nondetected_pred_deaths[g] / max(1, output.total_deaths[g]),
                 output.group_size[g].mean,
                 output.group_size[g].variance,
+                str(output.all_group_sizes[g]),
                 output.energetic_states[g].mean,
                 output.energetic_states[g].variance,
                 output.fitness[g].mean,
@@ -216,7 +215,7 @@ def process_results(
     deaths_stat: List[Stat] = []
     num_groups_per_gen: List[Stat] = []
     pred_catch_stat: List[Stat] = []
-    all_group_sizes: List[Stat] = []
+    all_group_sizes_stat: List[Stat] = []
     for i in range(num_generations):
         freq_false_flight_by_group_size.append(defaultdict(list))
         freq_true_flight_by_group_size.append(defaultdict(list))
@@ -241,6 +240,7 @@ def process_results(
                 freq_nondetected_pred_deaths,
                 group_size_mean,
                 group_size_var,
+                all_group_sizes,
                 energetic_states_mean,
                 energetic_states_var,
                 fitness_mean,
@@ -270,7 +270,9 @@ def process_results(
                 freq_true_flight_by_group_size[-1][group_size].append(freq_true_flight)
             freq_detected_pred_deaths_gen.append(freq_detected_pred_deaths)
             freq_nondetected_pred_deaths_gen.append(freq_nondetected_pred_deaths)
-            all_group_sizes.append(Stat(mean=group_size_mean, variance=group_size_var))
+            all_group_sizes_stat.append(
+                Stat(mean=group_size_mean, variance=group_size_var)
+            )
             num_groups.append(params.Ni / group_size_mean)
             all_deaths.append(total_deaths)
             all_catches.append(pred_catch_rate)
@@ -307,8 +309,8 @@ def process_results(
             Stat(mean=calc_mean(all_catches), variance=np.var(all_catches))
         )
 
-    all_group_size_means = np.array([x.mean for x in all_group_sizes])
-    all_group_size_vars = np.array([x.variance for x in all_group_sizes])
+    all_group_size_means = np.array([x.mean for x in all_group_sizes_stat])
+    all_group_size_vars = np.array([x.variance for x in all_group_sizes_stat])
     avg_group_size = Stat(
         mean=round(np.mean(all_group_size_means), 2),
         variance=np.mean(all_group_size_vars),

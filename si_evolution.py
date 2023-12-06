@@ -59,6 +59,7 @@ def init_outputs(params: Parameters) -> SimOutput:
         energetic_states=[],
         fitness=[],
         group_size=[],
+        all_group_sizes=[],
         pred_catch_rate=[],
         pred_catch_by_group_size=[],
     )
@@ -115,14 +116,13 @@ def evo_fun(
 
         if f == 0:
             f_pred = np.random.uniform(0, 1, Ni)
-            f_false = coef_false * f_pred
             s_faith = np.random.uniform(0, 0.5, Ni)
             s_dd = np.random.uniform(-2, 2, Ni)
         else:
             f_pred = f_all[f - 1]["f_pred"].values
-            f_false = coef_false * f_pred
             s_faith = f_all[f - 1]["s_faith"].values
             s_dd = f_all[f - 1]["s_dd"].values
+        f_false = coef_false * f_pred
 
         # For each time step, the population gets reassembled into groups based on a uniform distribution of group sizes. Then, each group is potentially subjected to a predator attack (based on a background predation level, probability set to 0.2 by default below).
 
@@ -136,7 +136,6 @@ def evo_fun(
         for t in range(1, tf):
             indivs_alive = [i for i in list(range(1, Ni + 1)) if i not in indivs_dead]
             num_groups, groups_df = assign_groups(indivs_alive, max_group_size)
-            group_sizes.append(Ni / num_groups)
 
             flights0 = np.full((num_groups, 4), np.nan)
             eaten_detect0 = np.full((num_groups, 2), np.nan)
@@ -146,11 +145,15 @@ def evo_fun(
             for indiv_id in indivs_dead:
                 fit[indiv_id - 1, t] = 0
 
+            t_pred = random_binomial(prob_pred)
+            group_attacked = random.randint(0, num_groups - 1) if t_pred else None
+
             for group_idx in range(num_groups):
-                pred = random_binomial(prob_pred)
+                pred = group_attacked == group_idx
                 num_pred_attacks += pred
                 subgroup = groups_df[groups_df["group_id"] == group_idx + 1]
                 ddensity = len(subgroup)
+                group_sizes.append(ddensity)
                 attacks_vec[group_idx] = pred
                 prev_flee = 0  # false flights
                 prev_detect = 0  # true flights
@@ -204,7 +207,6 @@ def evo_fun(
                     if not pred and not flee:
                         fit[indiv_idx, t] = fit[indiv_idx, t - 1] + e_gain
 
-                # removed the previous code so now we're always capping the number of deaths
                 indiv_eaten = False
                 sorted_poss_deaths = dict(
                     sorted(
@@ -251,6 +253,7 @@ def evo_fun(
 
         output.total_deaths.append(len(indivs_dead))
         output.group_size.append(calc_stat(group_sizes))
+        output.all_group_sizes.append(group_sizes)
         output.false_flights.append(
             {
                 group_size: calc_mean(freq_false_flights)
