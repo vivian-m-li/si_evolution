@@ -9,7 +9,7 @@ class Parameters:
     e_gain: int = 1  # energy units gained each time step in which the ith individual does not flee
     coef_false: float = 0.2  # coefficient that determines the prob of a false alarm (a smaller value than f_pred)
     maxf: int = 500  # number of generations to run the model through
-    prob_pred: float = 0.02
+    prob_pred: float = 0.2
     max_group_size: int = 25
 
 
@@ -39,11 +39,12 @@ class SimOutput:
     energetic_states: List[Stat]  # per generation
     fitness: List[Stat]  # per generation
     group_size: List[Stat]  # per generation
-    all_group_sizes: List[int]
+    all_group_sizes: List[List[int]]
     pred_catch_rate: List[float]  # per generation
     pred_catch_by_group_size: List[
         Dict[int, float]
     ]  # num_caught/num_attacks mean per group size per per generation
+    prop_groups_attacked: List[List[float]]
 
 
 @dataclass
@@ -68,6 +69,8 @@ class Results:
     num_groups_per_gen: List[Stat]
     deaths_stat: List[Stat]
     pred_catch_stat: List[Stat]
+    avg_prop_pred_visits: Stat
+    prop_pred_visits_by_timestep: List[Stat]
 
 
 @dataclass

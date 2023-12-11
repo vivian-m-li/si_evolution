@@ -14,7 +14,7 @@ def get_color(index: int, num_colors: int) -> Tuple[float, float, float]:
 
 
 def plot_traits(trait_mean, trait_sd, fit_traits_gen):
-    traits = ["jumpiness", "sociality", "density dependence in sociality"]
+    traits = ["jumpiness", "social faith", "density dependence in sociality"]
     out_ls = []
 
     fig = plt.figure(figsize=(6, 10))
@@ -108,7 +108,7 @@ def plot_mean_trait_values(trait: str, values: List[Stat]) -> None:
 
 
 def plot_all_mean_trait_values(r: Results) -> None:
-    traits = ["jumpiness", "sociality", "density dependence in sociality"]
+    traits = ["jumpiness", "social faith", "density dependence in sociality"]
     for i, trait in enumerate(traits):
         plot_mean_trait_values(trait, r.trait_values[i])
 
@@ -287,7 +287,7 @@ def plot_final_trait_values(results: List[MultResults], param: AnalysisParam) ->
     for i, label in enumerate(
         [
             "jumpiness",
-            "sociality",
+            "social faith",
             "density dependence in sociality",
         ]
     ):
@@ -356,10 +356,6 @@ def plot_final_flight_freq(results: List[MultResults], param: AnalysisParam) -> 
         freq_false_flights.append(data[x_val]["false_flights"])
         freq_true_flights.append(data[x_val]["true_flights"])
 
-    plt.scatter(
-        x_vals, freq_false_flights, label="freq false flights", color=COLOR_MAP[0]
-    )
-    plt.plot(x_vals, freq_false_flights, linestyle="dashed", color=COLOR_MAP[0])
     for i, x_val in enumerate(x_vals):
         if param.label_func:
             plt.annotate(
@@ -373,9 +369,14 @@ def plot_final_flight_freq(results: List[MultResults], param: AnalysisParam) -> 
         #     plt.plot(
         #         [x_bounds[x_val][0], x_bounds[x_val][1]],
         #         [freq_false_flights[i], freq_false_flights[i]],
-        #         color="red",
-        #         linestyle="--",
+        #         color="gray",
+        #         alpha=0.5,
         #     )
+
+    plt.scatter(
+        x_vals, freq_false_flights, label="freq false flights", color=COLOR_MAP[0]
+    )
+    plt.plot(x_vals, freq_false_flights, linestyle="dashed", color=COLOR_MAP[0])
 
     plt.scatter(
         x_vals, freq_true_flights, label="freq true flights", color=COLOR_MAP[1]
@@ -399,7 +400,11 @@ def plot_kills_per_visits_per_gen(results: List[MultResults], param: AnalysisPar
         color = get_color(i, len(results))
         plt.plot(
             x,
-            [y.mean * r.params.prob_pred for y in r.results.pred_catch_stat],
+            [
+                y.mean
+                # * r.params.prob_pred * (r.params.tf - 1)
+                for y in r.results.pred_catch_stat
+            ],
             color=color,
         )
         legend_elements.append(
@@ -414,14 +419,18 @@ def plot_kills_per_visits_per_gen(results: List[MultResults], param: AnalysisPar
     plt.show()
 
 
-def plot_final_kills_per_visits(results: List[MultResults], param: AnalysisParam):
+def plot_final_kills_per_visits(
+    results: List[MultResults], param: AnalysisParam
+) -> None:
     plt.figure(figsize=(10, 6))
     data = {}
     labels = {}
     for r in results:
         x_val = param.func(r.params, r.results)
         data[x_val] = (
-            get_steady_state_value(r.results.pred_catch_stat) * r.params.prob_pred
+            get_steady_state_value(r.results.pred_catch_stat)
+            # * r.params.prob_pred
+            # * (r.params.tf - 1)
         )
         labels[x_val] = (
             param.label_func(r.params, r.results)
@@ -450,4 +459,99 @@ def plot_final_kills_per_visits(results: List[MultResults], param: AnalysisParam
     plt.xlabel(param.label)
     plt.ylim(-0.025, 1.025)
     plt.ylabel("Catch Rate (# Kills/# Visits)")
+    plt.show()
+
+
+def plot_traits_by_gen(results: List[MultResults], param: AnalysisParam) -> None:
+    plt.figure(figsize=(7, 12))
+    gs = gridspec.GridSpec(3, 1, height_ratios=[1, 1, 1])
+    traits = ["jumpiness", "social faith", "density dependence in sociality"]
+    for i, trait in enumerate(traits):
+        ax = plt.subplot(gs[i, 0])
+
+        legend_elements = []
+        x = list(range(1, results[0].params.maxf + 1))
+        for j, r in enumerate(results):
+            color = get_color(j, len(results))
+            plt.plot(
+                x,
+                [y.mean for y in r.results.trait_values[i]],
+                color=color,
+            )
+            legend_elements.append(
+                Line2D([0], [0], color=color, label=param.func(r.params, r.results))
+            )
+
+        ax.set_ylabel(trait)
+        if i == 0:
+            ax.legend(
+                title=param.label,
+                handles=legend_elements,
+                loc="upper right",
+            )
+    plt.suptitle(f"Mean Trait Values Across Generations at Varying {param.label}")
+    plt.xlabel("Generation")
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_prob_pred_by_lambda(results: List[MultResults], param: AnalysisParam) -> None:
+    plt.figure(figsize=(10, 6))
+    data = {}
+    labels = {}
+    for r in results:
+        x_val = param.func(r.params, r.results)
+        data[x_val] = r.results.avg_prop_pred_visits.mean
+        labels[x_val] = (
+            param.label_func(r.params, r.results)
+            if param.label_func is not None
+            else ""
+        )
+
+    x_vals = []
+    y_vals = []
+    for x_val in sorted(data):
+        x_vals.append(x_val)
+        y_vals.append(data[x_val])
+
+    plt.scatter(x_vals, y_vals)
+    plt.plot(x_vals, y_vals, linestyle="dashed")
+    for i, x_val in enumerate(x_vals):
+        plt.annotate(
+            labels[x_val],
+            (x_val, y_vals[i]),
+            textcoords="offset points",
+            xytext=(5, 5),
+            ha="center",
+        )
+
+    plt.title(f"% of Groups Attacked at Varying {param.label}")
+    plt.xlabel(param.label)
+    plt.ylabel(f"% of Groups Attacked")
+    plt.show()
+
+
+def plot_prob_pred_by_lambda_per_timestep(
+    results: List[MultResults], param: AnalysisParam
+) -> None:
+    plt.figure(figsize=(10, 6))
+
+    legend_elements = []
+    x = list(range(1, results[0].params.tf))
+    for i, r in enumerate(results):
+        color = get_color(i, len(results))
+        plt.plot(
+            x,
+            [y.mean for y in r.results.prop_pred_visits_by_timestep],
+            color=color,
+        )
+        legend_elements.append(
+            Line2D([0], [0], color=color, label=param.func(r.params, r.results))
+        )
+
+    plt.legend(title=param.label, handles=legend_elements, loc="upper right")
+    plt.title(f"% of Groups Attacked At Varying {param.label}")
+    plt.xlabel("Timestep")
+    plt.ylim(-0.025, 1.025)
+    plt.ylabel(f"% of Groups Attacked")
     plt.show()

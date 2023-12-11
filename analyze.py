@@ -131,6 +131,7 @@ def write_output(directory: str, sim_id: int, output: SimOutput):
         "s_dd_var",
         "pred_catch_rate",
         "pred_catch_by_group_size",
+        "prop_groups_attacked",
     ]
     writer_object.writerow(headers)
 
@@ -159,6 +160,7 @@ def write_output(directory: str, sim_id: int, output: SimOutput):
                 output.trait_values[g][2].variance,
                 output.pred_catch_rate[g],
                 str(output.pred_catch_by_group_size[g]),
+                str(output.prop_groups_attacked[g]),
             ]
         )
     writer_object.writerows(sim_results)
@@ -216,6 +218,8 @@ def process_results(
     num_groups_per_gen: List[Stat] = []
     pred_catch_stat: List[Stat] = []
     all_group_sizes_stat: List[Stat] = []
+    all_group_sizes: List[int] = []
+    all_prop_pred_visits: List[List[float]] = []
     for i in range(num_generations):
         freq_false_flight_by_group_size.append(defaultdict(list))
         freq_true_flight_by_group_size.append(defaultdict(list))
@@ -240,7 +244,7 @@ def process_results(
                 freq_nondetected_pred_deaths,
                 group_size_mean,
                 group_size_var,
-                all_group_sizes,
+                group_sizes,
                 energetic_states_mean,
                 energetic_states_var,
                 fitness_mean,
@@ -253,6 +257,7 @@ def process_results(
                 s_dd_var,
                 pred_catch_rate,
                 pred_catch_by_group_size,
+                prop_groups_attacked,
             ) = cast_data_types(sim[i])
             for key, mean, var in [
                 ["fitness", fitness_mean, fitness_var],
@@ -273,9 +278,12 @@ def process_results(
             all_group_sizes_stat.append(
                 Stat(mean=group_size_mean, variance=group_size_var)
             )
+            all_group_sizes.extend(group_sizes)
             num_groups.append(params.Ni / group_size_mean)
             all_deaths.append(total_deaths)
             all_catches.append(pred_catch_rate)
+            all_prop_pred_visits.append(prop_groups_attacked)
+
         freq_detected_pred_deaths_all.append(calc_mean(freq_detected_pred_deaths_gen))
         freq_nondetected_pred_deaths_all.append(
             calc_mean(freq_nondetected_pred_deaths_gen)
@@ -314,7 +322,21 @@ def process_results(
     avg_group_size = Stat(
         mean=round(np.mean(all_group_size_means), 2),
         variance=np.mean(all_group_size_vars),
+        confidence_interval=(
+            np.percentile(all_group_sizes, 2.5),
+            np.percentile(all_group_sizes, 97.5),
+        ),
     )
+    all_prop_pred_visits = np.array(all_prop_pred_visits)
+    avg_prop_pred_visits = Stat(
+        np.mean(all_prop_pred_visits), np.var(all_prop_pred_visits)
+    )
+    prop_pred_visit_means = np.mean(all_prop_pred_visits, axis=0)
+    prop_pred_visit_vars = np.var(all_prop_pred_visits, axis=0)
+    prop_pred_visits_by_timestep: List[Stat] = [
+        Stat(mean=m, variance=v)
+        for m, v in zip(prop_pred_visit_means, prop_pred_visit_vars)
+    ]
 
     freq_false_flights_unbinned: List[float] = []
     freq_true_flights_unbinned: List[float] = []
@@ -364,6 +386,8 @@ def process_results(
         num_groups_per_gen,
         deaths_stat,
         pred_catch_stat,
+        avg_prop_pred_visits,
+        prop_pred_visits_by_timestep,
     )
 
 
@@ -420,3 +444,12 @@ def mult_sim_analysis(
 
         if "final_kills_per_visits" in plots:
             plot_final_kills_per_visits(all_results, analysis_param)
+
+        if "traits_by_gen" in plots:
+            plot_traits_by_gen(all_results, analysis_param)
+
+        if "prob_pred_by_lambda" in plots:
+            plot_prob_pred_by_lambda(all_results, analysis_param)
+
+        if "prob_pred_by_lambda_per_timestep" in plots:
+            plot_prob_pred_by_lambda_per_timestep(all_results, analysis_param)

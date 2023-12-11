@@ -62,6 +62,7 @@ def init_outputs(params: Parameters) -> SimOutput:
         all_group_sizes=[],
         pred_catch_rate=[],
         pred_catch_by_group_size=[],
+        prop_groups_attacked=[],
     )
 
 
@@ -69,6 +70,7 @@ def init_outputs(params: Parameters) -> SimOutput:
 def init_outputs_per_generation(output: SimOutput) -> None:
     output.detected_pred_deaths.append(0)
     output.nondetected_pred_deaths.append(0)
+    output.prop_groups_attacked.append([])
 
 
 def evo_fun(
@@ -145,12 +147,13 @@ def evo_fun(
             for indiv_id in indivs_dead:
                 fit[indiv_id - 1, t] = 0
 
-            t_pred = random_binomial(prob_pred)
-            group_attacked = random.randint(0, num_groups - 1) if t_pred else None
-
-            for group_idx in range(num_groups):
-                pred = group_attacked == group_idx
-                num_pred_attacks += pred
+            num_groups_attacked = min(num_groups, np.random.poisson(prob_pred))
+            output.prop_groups_attacked[-1].append(num_groups_attacked / num_groups)
+            subgroups = list(range(num_groups))
+            groups_attacked = random.choices(subgroups, k=num_groups_attacked)
+            for group_idx in subgroups:
+                pred = group_idx in groups_attacked
+                num_pred_attacks += int(pred)
                 subgroup = groups_df[groups_df["group_id"] == group_idx + 1]
                 ddensity = len(subgroup)
                 group_sizes.append(ddensity)
@@ -227,7 +230,6 @@ def evo_fun(
                                 output.detected_pred_deaths[-1] += 1
                             else:
                                 output.nondetected_pred_deaths[-1] += 1
-                            continue
                     fit[indiv_idx, t] = fit[indiv_idx, t - 1]
 
                 num_pred_by_group_size[ddensity] += pred
