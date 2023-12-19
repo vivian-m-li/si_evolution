@@ -14,7 +14,7 @@ def get_color(index: int, num_colors: int) -> Tuple[float, float, float]:
 
 
 def plot_traits(trait_mean, trait_sd, fit_traits_gen):
-    traits = ["jumpiness", "social faith", "density dependence in sociality"]
+    traits = ["jumpiness", "sociality", "density dependence in sociality"]
     out_ls = []
 
     fig = plt.figure(figsize=(6, 10))
@@ -108,7 +108,7 @@ def plot_mean_trait_values(trait: str, values: List[Stat]) -> None:
 
 
 def plot_all_mean_trait_values(r: Results) -> None:
-    traits = ["jumpiness", "social faith", "density dependence in sociality"]
+    traits = ["jumpiness", "sociality", "density dependence in sociality"]
     for i, trait in enumerate(traits):
         plot_mean_trait_values(trait, r.trait_values[i])
 
@@ -287,7 +287,7 @@ def plot_final_trait_values(results: List[MultResults], param: AnalysisParam) ->
     for i, label in enumerate(
         [
             "jumpiness",
-            "social faith",
+            "sociality",
             "density dependence in sociality",
         ]
     ):
@@ -384,10 +384,10 @@ def plot_final_flight_freq(results: List[MultResults], param: AnalysisParam) -> 
     plt.plot(x_vals, freq_true_flights, linestyle="dashed", color=COLOR_MAP[1])
 
     plt.legend()
-    plt.title(f"Freq False/True Flights at Varying {param.label}")
-    plt.xlabel(param.label)
+    plt.title(f"Frequency of False & True Flights", fontsize=18)
+    plt.xlabel(param.label, fontsize=16)
     plt.ylim(-0.025, 1.025)
-    plt.ylabel("Freq False/True Flight")
+    plt.ylabel("Freq. Flight", fontsize=16)
     plt.show()
 
 
@@ -463,9 +463,65 @@ def plot_final_kills_per_visits(
 
 
 def plot_traits_by_gen(results: List[MultResults], param: AnalysisParam) -> None:
-    plt.figure(figsize=(7, 12))
-    gs = gridspec.GridSpec(3, 1, height_ratios=[1, 1, 1])
-    traits = ["jumpiness", "social faith", "density dependence in sociality"]
+    # plt.figure(figsize=(7, 12))
+    # gs = gridspec.GridSpec(3, 1, height_ratios=[1, 1, 1])
+    # traits = ["jumpiness", "sociality", "density dependence in sociality"]
+    # for i, trait in enumerate(traits):
+    #     ax = plt.subplot(gs[i, 0])
+
+    #     legend_elements = []
+    #     x = list(range(1, results[0].params.maxf + 1))
+    #     for j, r in enumerate(results):
+    #         color = get_color(j, len(results))
+    #         plt.plot(
+    #             x,
+    #             [y.mean for y in r.results.trait_values[i]],
+    #             color=color,
+    #         )
+    #         legend_elements.append(
+    #             Line2D([0], [0], color=color, label=param.func(r.params, r.results))
+    #         )
+
+    #     ax.set_ylabel(trait)
+    #     if i == 0:
+    #         ax.legend(
+    #             title=param.label,
+    #             handles=legend_elements,
+    #             loc="upper right",
+    #         )
+    # plt.suptitle(f"Mean Trait Values Across Generations at Varying {param.label}")
+    # plt.xlabel("Generation")
+    # plt.tight_layout()
+    # plt.show()
+
+    # increase font size
+    plt.figure(figsize=(10, 6))
+    legend_elements = []
+    x = list(range(1, results[0].params.maxf + 1))
+    for j, r in enumerate(results):
+        color = get_color(j, len(results))
+        plt.plot(
+            x,
+            [y.mean for y in r.results.trait_values[0]],
+            color=color,
+        )
+        legend_elements.append(
+            Line2D([0], [0], color=color, label=param.func(r.params, r.results))
+        )
+
+    plt.ylabel("jumpiness", fontsize=16)
+    plt.legend(
+        title=param.label,
+        handles=legend_elements,
+        loc="upper right",
+    )
+    plt.suptitle(f"Mean Trait Values Across Generations", fontsize=18)
+    plt.xlabel("Generation", fontsize=16)
+    plt.show()
+
+    plt.figure(figsize=(8, 10))
+    gs = gridspec.GridSpec(2, 1, height_ratios=[1, 1])
+    traits = ["sociality", "density dependence in sociality"]
     for i, trait in enumerate(traits):
         ax = plt.subplot(gs[i, 0])
 
@@ -475,22 +531,22 @@ def plot_traits_by_gen(results: List[MultResults], param: AnalysisParam) -> None
             color = get_color(j, len(results))
             plt.plot(
                 x,
-                [y.mean for y in r.results.trait_values[i]],
+                [y.mean for y in r.results.trait_values[i + 1]],
                 color=color,
             )
             legend_elements.append(
                 Line2D([0], [0], color=color, label=param.func(r.params, r.results))
             )
 
-        ax.set_ylabel(trait)
+        ax.set_ylabel(trait, fontsize=16)
         if i == 0:
             ax.legend(
                 title=param.label,
                 handles=legend_elements,
                 loc="upper right",
             )
-    plt.suptitle(f"Mean Trait Values Across Generations at Varying {param.label}")
-    plt.xlabel("Generation")
+    plt.suptitle(f"Mean Trait Values Across Generations", fontsize=18)
+    plt.xlabel("Generation", fontsize=16)
     plt.tight_layout()
     plt.show()
 

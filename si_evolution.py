@@ -173,7 +173,7 @@ def evo_fun(
                     if prev_flee > 0:
                         p_flee_s = (
                             prev_flee * s_faith[indiv_idx]
-                            + (ddensity - prev_flee) * s_dd[indiv_idx]
+                            + (ddensity - prev_flee) / max_group_size * s_dd[indiv_idx]
                         )
                         p_flee_s = min(1, p_flee_s)
                         p_flee_s = max(0, p_flee_s)
@@ -190,7 +190,9 @@ def evo_fun(
                     if pred and not flee:
                         p_detect_s = (
                             prev_detect * s_faith[indiv_idx]
-                            + (ddensity - prev_flee - prev_detect) * s_dd[indiv_idx]
+                            + (ddensity - prev_flee - prev_detect)
+                            / max_group_size
+                            * s_dd[indiv_idx]
                         )
                         p_detect_s = min(1, p_detect_s)
                         p_detect_s = max(0, p_detect_s)

@@ -64,7 +64,48 @@ if __name__ == "__main__":
     start = time.time()
 
     num_simulations = 100
-    sim_params = []
+    sim_params = [
+        # varying lambda
+        Parameters(prob_pred=0),
+        Parameters(prob_pred=0.02),
+        Parameters(prob_pred=0.05),
+        Parameters(prob_pred=0.1),
+        Parameters(prob_pred=0.2),
+        Parameters(prob_pred=0.4),
+        Parameters(prob_pred=0.6),
+        Parameters(prob_pred=0.8),
+        Parameters(prob_pred=1),
+        Parameters(prob_pred=1.2),
+        Parameters(prob_pred=1.4),
+        Parameters(prob_pred=1.6),
+        Parameters(prob_pred=1.8),
+        Parameters(prob_pred=2),
+        # varying max group size, lambda = 0.2
+        Parameters(prob_pred=0.2, max_group_size=5),
+        Parameters(prob_pred=0.2, max_group_size=10),
+        Parameters(prob_pred=0.2, max_group_size=15),
+        Parameters(prob_pred=0.2, max_group_size=20),
+        Parameters(prob_pred=0.2, max_group_size=30),
+        Parameters(prob_pred=0.2, max_group_size=40),
+        Parameters(prob_pred=0.2, max_group_size=50),
+        Parameters(prob_pred=0.2, max_group_size=100),
+        # varying max group size, lambda = 2
+        Parameters(prob_pred=2, max_group_size=5),
+        Parameters(prob_pred=2, max_group_size=10),
+        Parameters(prob_pred=2, max_group_size=15),
+        Parameters(prob_pred=2, max_group_size=20),
+        Parameters(prob_pred=2, max_group_size=30),
+        Parameters(prob_pred=2, max_group_size=40),
+        Parameters(prob_pred=2, max_group_size=50),
+        Parameters(prob_pred=2, max_group_size=100),
+        # varying lambda and e gain
+        Parameters(prob_pred=0.2, e_gain=0.5),
+        Parameters(prob_pred=0.2, e_gain=1.5),
+        Parameters(prob_pred=0.2, e_gain=2),
+        Parameters(prob_pred=2, e_gain=0.5),
+        Parameters(prob_pred=2, e_gain=1.5),
+        Parameters(prob_pred=2, e_gain=2),
+    ]
     for i, params in enumerate(sim_params):
         param_start = time.time()
         run_si_evolution_sims(param_start, params, num_simulations)
