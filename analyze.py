@@ -284,9 +284,6 @@ def mult_sim_analysis(
 ) -> None:
     all_outputs = get_all_outputs(out_file_path, all_params)
     all_results: List[MultResults] = []
-    import pdb
-
-    pdb.set_trace()
     for i, params in enumerate(all_params):
         sim_outputs = all_outputs[i]
         if len(sim_outputs) == 0:
@@ -303,10 +300,6 @@ def mult_sim_analysis(
 
         if "all_mean_trait_values" in plots:
             plot_all_mean_trait_values(results)
-
-    import pdb
-
-    pdb.set_trace()
 
     if param is not None:
         analysis_param = PARAM_FUNCS[param]

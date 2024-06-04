@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import random
 from typing import List, Tuple, Any
-from dataclasses import fields
+from dataclasses import fields, asdict
 from si_types import *
 
 CONFIDENCE_LEVEL = 0.95
@@ -110,6 +110,12 @@ def init_outputs_per_generation(output: SimOutput) -> None:
     output.prop_groups_attacked.append([])
 
 
+def cast_param_dataclass(output_params: OutputParameters) -> Parameters:
+    b_fields = asdict(output_params)
+    a_fields = {field.name: b_fields[field.name] for field in fields(Parameters)}
+    return Parameters(**a_fields)
+
+
 def build_output_path(params: Parameters):
     params = cast_dataclass_types(params)
     param_lst = [
@@ -121,6 +127,7 @@ def build_output_path(params: Parameters):
         params.prob_pred,
         params.max_group_size,
     ]
+    param_lst = [str(x) for x in param_lst]
     return "_".join(param_lst)
 
 
@@ -234,7 +241,6 @@ def write_sim_file(directory: str, sim_id: str, output: SimOutput):
 def write_output(directory: str, output: SimOutput):
     if not os.path.exists(directory):
         os.makedirs(directory)
-
     output_path = build_output_path(output.parameters)
     output_dir = f"{directory}/{output_path}"
     if not os.path.exists(output_dir):
@@ -274,7 +280,9 @@ def get_all_outputs(
 ) -> List[List[pd.DataFrame]]:
     sims: List[List[pd.DataFrame]] = [[] for _ in range(len(all_params))]
     for i, params in enumerate(all_params):
-        output_dir = f"{out_file_path}/{build_output_path(params)}"
+        output_dir = (
+            f"{out_file_path}/{build_output_path(cast_param_dataclass(params))}"
+        )
         try:
             files = os.listdir(output_dir)
         except Exception:
