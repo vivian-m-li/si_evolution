@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import random
 from typing import List, Tuple, Any
+from dataclasses import fields
 from si_types import *
 
 CONFIDENCE_LEVEL = 0.95
@@ -22,6 +23,40 @@ def random_binomial(prob: float):
 
 def calc_stat(data) -> Stat:
     return Stat(mean=calc_mean(data), variance=np.var(data))
+
+
+def eval_int_float(x):
+    if type(x) != str:
+        return x
+    if "." not in x or x.endswith(".0"):
+        return int(float(x))
+    if "." in x:
+        return float(x)
+    return x
+
+
+def cast_data_types(row: List[str]) -> List[Any]:
+    data = []
+    for x in row:
+        try:
+            value = ast.literal_eval(x)
+            if isinstance(value, dict):
+                data.append(value)
+            elif isinstance(value, list):
+                data.append(value)
+            else:
+                data.append(eval_int_float(x))
+        except (ValueError, SyntaxError):
+            data.append(eval_int_float(x))
+    return data
+
+
+def cast_dataclass_types(instance: Any) -> Any:
+    for field in fields(instance):
+        value = getattr(instance, field.name)
+        casted_value = field.type(value)
+        setattr(instance, field.name, casted_value)
+    return instance
 
 
 def assign_groups(
@@ -76,6 +111,7 @@ def init_outputs_per_generation(output: SimOutput) -> None:
 
 
 def build_output_path(params: Parameters):
+    params = cast_dataclass_types(params)
     param_lst = [
         params.Ni,
         params.tf,
@@ -85,7 +121,6 @@ def build_output_path(params: Parameters):
         params.prob_pred,
         params.max_group_size,
     ]
-    param_lst = [str(float(x)) for x in param_lst]
     return "_".join(param_lst)
 
 
@@ -99,32 +134,6 @@ def calc_confidence_interval(means: List[float]) -> Tuple[float, float]:
         mean_of_means + margin_of_error,
     )
     return confidence_interval
-
-
-def eval_int_float(x):
-    if type(x) != str:
-        return x
-    if "." not in x or x.endswith(".0"):
-        return int(float(x))
-    if "." in x:
-        return float(x)
-    return x
-
-
-def cast_data_types(row: List[str]) -> List[Any]:
-    data = []
-    for x in row:
-        try:
-            value = ast.literal_eval(x)
-            if isinstance(value, dict):
-                data.append(value)
-            elif isinstance(value, list):
-                data.append(value)
-            else:
-                data.append(eval_int_float(x))
-        except (ValueError, SyntaxError):
-            data.append(eval_int_float(x))
-    return data
 
 
 def get_sim_id(file_name: str) -> int:
@@ -269,9 +278,7 @@ def get_all_outputs(
         try:
             files = os.listdir(output_dir)
         except Exception:
-            import pdb
-
-            pdb.set_trace()
+            continue
         for file_name in files:
             df = pd.read_csv(f"{output_dir}/{file_name}").to_numpy()
             sims[i].append(df)
