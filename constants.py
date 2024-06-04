@@ -3,6 +3,7 @@ import matplotlib.cm as cm
 from si_types import *
 
 OUT_FILE_DIR = "results"
+PLOT_FILE_DIR = "plots"
 
 DEFAULT_PARAMS = Parameters()
 

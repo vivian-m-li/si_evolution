@@ -42,7 +42,7 @@ def plot_traits(trait_mean, trait_sd, fit_traits_gen):
     plt.suptitle(f"Fitness = {mean_ff} +/- {sd_ff} SD")
     plt.xlabel("Generation")
     plt.tight_layout()
-    plt.show()
+    plt.savefig(f"{PLOT_FILE_DIR}/traits.png")
 
     return out_ls
 
@@ -74,7 +74,7 @@ def plot_flight_freq_by_group_size(
     )
     plt.xlabel("Generation")
     plt.ylabel(f"Proportion of Group Fleeing ({flight_type})")
-    plt.show()
+    plt.savefig(f"{PLOT_FILE_DIR}/flight_freq_by_group_size.png")
 
 
 def plot_false_flight_freq(r: Results, params: OutputParameters) -> None:
@@ -105,7 +105,7 @@ def plot_mean_trait_values(trait: str, values: List[Stat]) -> None:
     plt.xlabel("Generation")
     plt.ylabel(trait)
     plt.title(f"Mean {trait} Across Generations")
-    plt.show()
+    plt.savefig(f"{PLOT_FILE_DIR}/mean_trait_values.png")
 
 
 def plot_all_mean_trait_values(r: Results) -> None:
@@ -130,7 +130,7 @@ def plot_fitness(r: Results) -> None:
     plt.xlabel("Generation")
     plt.ylabel("Fitness")
     plt.title("Mean Fitness Across Generations")
-    plt.show()
+    plt.savefig(f"{PLOT_FILE_DIR}/fitness.png")
 
 
 def plot_avg_flight(
@@ -159,7 +159,7 @@ def plot_avg_flight(
     )
     plt.xlabel("Generation")
     plt.ylabel(f"Proportion of Group Fleeing ({flight_type})")
-    plt.show()
+    plt.savefig(f"{PLOT_FILE_DIR}/avg_flight_{param.label}.png")
 
 
 def plot_avg_false_flight(results: List[MultResults], param: AnalysisParam) -> None:
@@ -223,7 +223,7 @@ def plot_detected_nondetected_pred_deaths(
     plt.xlabel("Generation")
     plt.ylim(-0.025, 1.025)
     plt.ylabel(f"Freq Death")
-    plt.show()
+    plt.savefig(f"{PLOT_FILE_DIR}/detected_nondetected_pred_deaths_{param.label}.png")
 
 
 def get_steady_state_value(values: Union[List[Stat], List[float]]) -> float:
@@ -266,7 +266,7 @@ def plot_final_fitness(results: List[MultResults], param: AnalysisParam) -> None
     plt.title(f"Fitness at Varying {param.label}")
     plt.xlabel(param.label)
     plt.ylabel("Fitness")
-    plt.show()
+    plt.savefig(f"{PLOT_FILE_DIR}/final_fitness_{param.label}.png")
 
 
 def plot_final_trait_values(results: List[MultResults], param: AnalysisParam) -> None:
@@ -299,7 +299,7 @@ def plot_final_trait_values(results: List[MultResults], param: AnalysisParam) ->
     plt.title(f"Trait Values at Varying {param.label}")
     plt.xlabel(param.label)
     plt.ylabel("Trait Value")
-    plt.show()
+    plt.savefig(f"{PLOT_FILE_DIR}/final_trait_values_{param.label}.png")
 
 
 def plot_total_deaths_per_gen(results: List[MultResults], param: AnalysisParam) -> None:
@@ -322,7 +322,7 @@ def plot_total_deaths_per_gen(results: List[MultResults], param: AnalysisParam) 
     plt.title(f"Total Deaths from Predators At Varying {param.label}")
     plt.xlabel("Generation")
     plt.ylabel(f"# Deaths")
-    plt.show()
+    plt.savefig(f"{PLOT_FILE_DIR}/total_deaths_per_gen_{param.label}.png")
 
 
 def plot_final_flight_freq(results: List[MultResults], param: AnalysisParam) -> None:
@@ -389,7 +389,7 @@ def plot_final_flight_freq(results: List[MultResults], param: AnalysisParam) -> 
     plt.xlabel(param.label, fontsize=16)
     plt.ylim(-0.025, 1.025)
     plt.ylabel("Freq. Flight", fontsize=16)
-    plt.show()
+    plt.savefig(f"{PLOT_FILE_DIR}/final_flight_freq_{param.label}.png")
 
 
 def plot_kills_per_visits_per_gen(results: List[MultResults], param: AnalysisParam):
@@ -417,7 +417,7 @@ def plot_kills_per_visits_per_gen(results: List[MultResults], param: AnalysisPar
     plt.xlabel("Generation")
     plt.ylim(-0.025, 1.025)
     plt.ylabel(f"Catch Rate (# Kills/# Visits)")
-    plt.show()
+    plt.savefig(f"{PLOT_FILE_DIR}/kills_per_visits_per_gen_{param.label}.png")
 
 
 def plot_final_kills_per_visits(
@@ -460,69 +460,13 @@ def plot_final_kills_per_visits(
     plt.xlabel(param.label)
     plt.ylim(-0.025, 1.025)
     plt.ylabel("Catch Rate (# Kills/# Visits)")
-    plt.show()
+    plt.savefig(f"{PLOT_FILE_DIR}/final_kills_per_visits_{param.label}.png")
 
 
 def plot_traits_by_gen(results: List[MultResults], param: AnalysisParam) -> None:
-    # plt.figure(figsize=(7, 12))
-    # gs = gridspec.GridSpec(3, 1, height_ratios=[1, 1, 1])
-    # traits = ["jumpiness", "sociality", "density dependence in sociality"]
-    # for i, trait in enumerate(traits):
-    #     ax = plt.subplot(gs[i, 0])
-
-    #     legend_elements = []
-    #     x = list(range(1, results[0].params.maxf + 1))
-    #     for j, r in enumerate(results):
-    #         color = get_color(j, len(results))
-    #         plt.plot(
-    #             x,
-    #             [y.mean for y in r.results.trait_values[i]],
-    #             color=color,
-    #         )
-    #         legend_elements.append(
-    #             Line2D([0], [0], color=color, label=param.func(r.params, r.results))
-    #         )
-
-    #     ax.set_ylabel(trait)
-    #     if i == 0:
-    #         ax.legend(
-    #             title=param.label,
-    #             handles=legend_elements,
-    #             loc="upper right",
-    #         )
-    # plt.suptitle(f"Mean Trait Values Across Generations at Varying {param.label}")
-    # plt.xlabel("Generation")
-    # plt.tight_layout()
-    # plt.show()
-
-    # increase font size
-    plt.figure(figsize=(10, 6))
-    legend_elements = []
-    x = list(range(1, results[0].params.maxf + 1))
-    for j, r in enumerate(results):
-        color = get_color(j, len(results))
-        plt.plot(
-            x,
-            [y.mean for y in r.results.trait_values[0]],
-            color=color,
-        )
-        legend_elements.append(
-            Line2D([0], [0], color=color, label=param.func(r.params, r.results))
-        )
-
-    plt.ylabel("jumpiness", fontsize=16)
-    plt.legend(
-        title=param.label,
-        handles=legend_elements,
-        loc="upper right",
-    )
-    plt.suptitle(f"Mean Trait Values Across Generations", fontsize=18)
-    plt.xlabel("Generation", fontsize=16)
-    plt.show()
-
-    plt.figure(figsize=(8, 10))
-    gs = gridspec.GridSpec(2, 1, height_ratios=[1, 1])
-    traits = ["sociality", "density dependence in sociality"]
+    plt.figure(figsize=(7, 12))
+    gs = gridspec.GridSpec(3, 1, height_ratios=[1, 1, 1])
+    traits = ["jumpiness", "sociality", "density dependence in sociality"]
     for i, trait in enumerate(traits):
         ax = plt.subplot(gs[i, 0])
 
@@ -532,24 +476,79 @@ def plot_traits_by_gen(results: List[MultResults], param: AnalysisParam) -> None
             color = get_color(j, len(results))
             plt.plot(
                 x,
-                [y.mean for y in r.results.trait_values[i + 1]],
+                [y.mean for y in r.results.trait_values[i]],
                 color=color,
             )
             legend_elements.append(
                 Line2D([0], [0], color=color, label=param.func(r.params, r.results))
             )
 
-        ax.set_ylabel(trait, fontsize=16)
+        ax.set_ylabel(trait)
         if i == 0:
             ax.legend(
                 title=param.label,
                 handles=legend_elements,
                 loc="upper right",
             )
-    plt.suptitle(f"Mean Trait Values Across Generations", fontsize=18)
-    plt.xlabel("Generation", fontsize=16)
+    plt.suptitle(f"Mean Trait Values Across Generations at Varying {param.label}")
+    plt.xlabel("Generation")
     plt.tight_layout()
-    plt.show()
+    plt.savefig(f"{PLOT_FILE_DIR}/traits_by_gen_{param.label}.png")
+
+    # plt.figure(figsize=(10, 6))
+    # legend_elements = []
+    # x = list(range(1, results[0].params.maxf + 1))
+    # for j, r in enumerate(results):
+    #     color = get_color(j, len(results))
+    #     plt.plot(
+    #         x,
+    #         [y.mean for y in r.results.trait_values[0]],
+    #         color=color,
+    #     )
+    #     legend_elements.append(
+    #         Line2D([0], [0], color=color, label=param.func(r.params, r.results))
+    #     )
+
+    # plt.ylabel("jumpiness", fontsize=16)
+    # plt.legend(
+    #     title=param.label,
+    #     handles=legend_elements,
+    #     loc="upper right",
+    # )
+    # plt.suptitle(f"Mean Trait Values Across Generations", fontsize=18)
+    # plt.xlabel("Generation", fontsize=16)
+    # plt.savefig(f"{PLOT_FILE_DIR}/jumpiness_{param.label}.png")
+
+    # plt.figure(figsize=(8, 10))
+    # gs = gridspec.GridSpec(2, 1, height_ratios=[1, 1])
+    # traits = ["sociality", "density dependence in sociality"]
+    # for i, trait in enumerate(traits):
+    #     ax = plt.subplot(gs[i, 0])
+
+    #     legend_elements = []
+    #     x = list(range(1, results[0].params.maxf + 1))
+    #     for j, r in enumerate(results):
+    #         color = get_color(j, len(results))
+    #         plt.plot(
+    #             x,
+    #             [y.mean for y in r.results.trait_values[i + 1]],
+    #             color=color,
+    #         )
+    #         legend_elements.append(
+    #             Line2D([0], [0], color=color, label=param.func(r.params, r.results))
+    #         )
+
+    #     ax.set_ylabel(trait, fontsize=16)
+    #     if i == 0:
+    #         ax.legend(
+    #             title=param.label,
+    #             handles=legend_elements,
+    #             loc="upper right",
+    #         )
+    # plt.suptitle(f"Mean Trait Values Across Generations", fontsize=18)
+    # plt.xlabel("Generation", fontsize=16)
+    # plt.tight_layout()
+    # plt.savefig(f"{PLOT_FILE_DIR}/sociality_sdd_{param.label}.png")
 
 
 def plot_prob_pred_by_lambda(results: List[MultResults], param: AnalysisParam) -> None:
@@ -585,7 +584,7 @@ def plot_prob_pred_by_lambda(results: List[MultResults], param: AnalysisParam) -
     plt.title(f"% of Groups Attacked at Varying {param.label}")
     plt.xlabel(param.label)
     plt.ylabel(f"% of Groups Attacked")
-    plt.show()
+    plt.savefig(f"{PLOT_FILE_DIR}/prob_pred_by_lambda_{param.label}.png")
 
 
 def plot_prob_pred_by_lambda_per_timestep(
@@ -611,4 +610,4 @@ def plot_prob_pred_by_lambda_per_timestep(
     plt.xlabel("Timestep")
     plt.ylim(-0.025, 1.025)
     plt.ylabel(f"% of Groups Attacked")
-    plt.show()
+    plt.savefig(f"{PLOT_FILE_DIR}/prob_pred_by_lambda_per_timestep_{param.label}.png")
