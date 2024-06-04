@@ -3,6 +3,7 @@ import csv
 import pandas as pd
 import numpy as np
 import ast
+import uuid
 from scipy import stats
 from plot import *
 from si_types import *
@@ -85,28 +86,7 @@ def write_new_all_file(file_name):
     results_file.close()
 
 
-def write_output(directory: str, sim_id: int, output: SimOutput):
-    results_file_name = f"{directory}/all.csv"
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-        write_new_all_file(results_file_name)
-
-    results_file = open(results_file_name, "a")
-    writer_object = csv.writer(results_file, lineterminator="\n")
-    writer_object.writerow(
-        [
-            sim_id,
-            output.parameters.Ni,
-            output.parameters.tf,
-            output.parameters.e_gain,
-            output.parameters.coef_false,
-            output.parameters.maxf,
-            output.parameters.prob_pred,
-            output.parameters.max_group_size,
-        ]
-    )
-    results_file.close()
-
+def write_sim_file(directory: str, sim_id: str, output: SimOutput):
     sim_file = open(f"{directory}/{sim_id}.csv", "a")
     writer_object = csv.writer(sim_file, lineterminator="\n")
     headers = [
@@ -168,7 +148,50 @@ def write_output(directory: str, sim_id: int, output: SimOutput):
     sim_file.close()
 
 
-def get_all_outputs(
+def write_output(directory: str, output: SimOutput):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    output_path = build_output_path(output.parameters)
+    output_dir = f"{directory}/{output_path}"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    unique_sim_id = uuid.uuid4()
+    write_sim_file(output_dir, unique_sim_id, output)
+
+
+def write_output_old(directory: str, sim_id: int, output: SimOutput):
+    results_file_name = f"{directory}/all.csv"
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+        write_new_all_file(results_file_name)
+
+    results_file = open(results_file_name, "a")
+    writer_object = csv.writer(results_file, lineterminator="\n")
+    writer_object.writerow(
+        [
+            sim_id,
+            output.parameters.Ni,
+            output.parameters.tf,
+            output.parameters.e_gain,
+            output.parameters.coef_false,
+            output.parameters.maxf,
+            output.parameters.prob_pred,
+            output.parameters.max_group_size,
+        ]
+    )
+    results_file.close()
+
+    write_sim_file(directory, sim_id, output)
+
+
+# TODO: change this function to pull from diff folders instead of all.cvs file
+def get_all_outputs(out_file_path: str, all_params: List[OutputParameters]):
+    pass
+
+
+def get_all_outputs_old(
     out_file_path: str, all_params: List[OutputParameters]
 ) -> List[List[pd.DataFrame]]:
     sims: List[List[pd.DataFrame]] = [[] for _ in range(len(all_params))]

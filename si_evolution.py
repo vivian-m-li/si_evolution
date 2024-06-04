@@ -9,75 +9,15 @@ from constants import *
 from helper import *
 from plot import plot_traits
 from collections import defaultdict
-from typing import List, Tuple, DefaultDict, Set
+from typing import List, DefaultDict, Set
 
 warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
-
-
-def random_binomial(prob: float):
-    return 1 if random.random() < prob else 0
-
-
-def calc_stat(data) -> Stat:
-    return Stat(mean=calc_mean(data), variance=np.var(data))
-
-
-def assign_groups(
-    indivs_alive: List[int], max_group_size: int
-) -> Tuple[int, pd.DataFrame]:
-    groups = []
-    indivs = indivs_alive.copy()
-    random.shuffle(indivs)
-    while indivs:
-        group_size = random.randint(1, min(max_group_size, len(indivs)))
-        current_group = indivs[:group_size]
-        groups.append(current_group)
-        indivs = indivs[group_size:]
-    group_lookup = {}
-    for i, members in enumerate(groups):
-        group_id = i + 1
-        for member in members:
-            group_lookup[member] = group_id
-
-    group_vec = []
-    for i in indivs_alive:
-        group_vec.append(group_lookup[i])
-    groups_df = pd.DataFrame({"individual": indivs_alive, "group_id": group_vec})
-    num_groups = len(set(group_vec))
-    return num_groups, groups_df
-
-
-def init_outputs(params: Parameters) -> SimOutput:
-    return SimOutput(
-        parameters=params,
-        total_deaths=[],
-        false_flights=[],
-        true_flights=[],
-        detected_pred_deaths=[],
-        nondetected_pred_deaths=[],
-        trait_values=[],
-        energetic_states=[],
-        fitness=[],
-        group_size=[],
-        all_group_sizes=[],
-        pred_catch_rate=[],
-        pred_catch_by_group_size=[],
-        prop_groups_attacked=[],
-    )
-
-
-# Mutates the original output object
-def init_outputs_per_generation(output: SimOutput) -> None:
-    output.detected_pred_deaths.append(0)
-    output.nondetected_pred_deaths.append(0)
-    output.prop_groups_attacked.append([])
 
 
 def evo_fun(
     directory: str,
     params: Parameters,
     *,
-    sim_id: int,
     save_output: bool = True,
     plot: bool = False,
 ):
@@ -318,7 +258,7 @@ def evo_fun(
         )
 
     if save_output:
-        write_output(directory, sim_id, output)
+        write_output(directory, output)
 
     if plot:
         plot_traits(trait_mean, trait_sd, fit_traits_gen)

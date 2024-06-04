@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.cm as cm
 from si_types import *
 
-out_file_path = "results"
+OUT_FILE_DIR = "results"
 
 DEFAULT_PARAMS = Parameters()
 
