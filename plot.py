@@ -6,6 +6,7 @@ import pandas as pd
 from collections import defaultdict
 from si_types import *
 from constants import *
+from typing import Union
 
 
 def get_color(index: int, num_colors: int) -> Tuple[float, float, float]:
@@ -225,7 +226,7 @@ def plot_detected_nondetected_pred_deaths(
     plt.show()
 
 
-def get_steady_state_value(values: List[Stat] | List[float]) -> float:
+def get_steady_state_value(values: Union[List[Stat], List[float]]) -> float:
     last_fifty_vals = values[-50:]
     if type(values[0]) == Stat:
         last_fifty_vals = [x.mean for x in last_fifty_vals]
