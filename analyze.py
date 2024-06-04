@@ -1,229 +1,90 @@
-import os
-import csv
 import pandas as pd
 import numpy as np
-import ast
-import uuid
-from scipy import stats
 from plot import *
 from si_types import *
 from constants import *
 from helper import *
 from collections import defaultdict
-from typing import Optional, List, DefaultDict, Any
-
-CONFIDENCE_LEVEL = 0.95
+from typing import Optional, List, DefaultDict
 
 
-def calc_confidence_interval(means: List[float]) -> Tuple[float, float]:
-    mean_of_means = calc_mean(means)
-    std_dev_of_sample_means = np.std(means, ddof=1) / np.sqrt(len(means))
-    z_critical = stats.norm.ppf((1 + CONFIDENCE_LEVEL) / 2)
-    margin_of_error = z_critical * std_dev_of_sample_means
-    confidence_interval = (
-        mean_of_means - margin_of_error,
-        mean_of_means + margin_of_error,
-    )
-    return confidence_interval
+def get_params_to_analyze(analysis):
+    params = []
+    param = ""
 
+    if analysis == "pop_size":
+        for max_group_size in [15, 25, 50]:
+            for Ni in [100, 500]:
+                params.append(
+                    OutputParameters(
+                        max_group_size=max_group_size,
+                        Ni=Ni,
+                        group_bin_size=int(max_group_size / 5),
+                    )
+                )
+        return [params], "pop_size"
 
-def eval_int_float(x):
-    if type(x) != str:
-        return x
-    if "." not in x or x.endswith(".0"):
-        return int(float(x))
-    if "." in x:
-        return float(x)
-    return x
+    if analysis == "group_size":
+        for prob_pred in [0.2, 2]:
+            params.append([])
+            for max_group_size in [5, 10, 15, 20, 25, 30, 40, 50, 100]:
+                params[-1].append(
+                    OutputParameters(
+                        prob_pred=prob_pred,
+                        max_group_size=max_group_size,
+                        group_bin_size=int(max_group_size / 5),
+                    )
+                )
+        return params, "avg_group_size"
 
+    if analysis == "pred":
+        for prob_pred in [
+            0,
+            0.002,
+            0.005,
+            0.01,
+            0.02,
+            0.04,
+            0.06,
+            0.08,
+            0.1,
+            0.12,
+            0.14,
+            0.16,
+            0.18,
+            0.2,
+        ]:
+            params.append(OutputParameters(prob_pred=prob_pred))
+        return [params], "prob_pred"
 
-def cast_data_types(row: List[str]) -> List[Any]:
-    data = []
-    for x in row:
-        try:
-            value = ast.literal_eval(x)
-            if isinstance(value, dict):
-                data.append(value)
-            elif isinstance(value, list):
-                data.append(value)
-            else:
-                data.append(eval_int_float(x))
-        except (ValueError, SyntaxError):
-            data.append(eval_int_float(x))
-    return data
+    if analysis == "lambda":
+        for p_lambda in [
+            0,
+            0.02,
+            0.05,
+            0.1,
+            0.2,
+            0.4,
+            0.6,
+            0.8,
+            1,
+            1.2,
+            1.4,
+            1.6,
+            1.8,
+            2.0,
+        ]:
+            params.append(OutputParameters(prob_pred=p_lambda))
+        return [params], "lambda"
 
+    if analysis == "e_gain":
+        for prob_pred in [0.2, 2.0]:
+            params.append([])
+            for e_gain in [0.5, 1, 1.5, 2]:
+                params[-1].append(OutputParameters(prob_pred=prob_pred, e_gain=e_gain))
+        return params, "e_gain"
 
-def get_sim_id(file_name: str) -> int:
-    if not os.path.isfile(file_name):
-        return 0
-
-    df = pd.read_csv(file_name)
-    df.dropna(axis=0, how="all", inplace=True)
-    df.to_csv(file_name, index=False)
-
-    sim_id = 0
-    if not df.empty:
-        sim_id = int(df.iloc[:, 0].max()) + 1
-
-    return sim_id
-
-
-def write_new_all_file(file_name):
-    results_file = open(file_name, "w")
-    writer_object = csv.writer(results_file, lineterminator="\n")
-    writer_object.writerow(
-        [
-            "id",
-            "Ni",
-            "tf",
-            "e_gain",
-            "coef_false",
-            "maxf",
-            "prob_pred",
-            "max_group_size",
-        ]
-    )
-    results_file.close()
-
-
-def write_sim_file(directory: str, sim_id: str, output: SimOutput):
-    sim_file = open(f"{directory}/{sim_id}.csv", "a")
-    writer_object = csv.writer(sim_file, lineterminator="\n")
-    headers = [
-        "generation",
-        "total_deaths",
-        "freq_false_flights",
-        "freq_true_flights",
-        "freq_detected_pred_deaths",
-        "freq_nondetected_pred_deaths",
-        "group_size_mean",
-        "group_size_var",
-        "all_group_sizes",
-        "energetic_states_mean",
-        "energetic_states_var",
-        "fitness_mean",
-        "fitness_var",
-        "f_pred_mean",
-        "f_pred_var",
-        "s_faith_mean",
-        "s_faith_var",
-        "s_dd_mean",
-        "s_dd_var",
-        "pred_catch_rate",
-        "pred_catch_by_group_size",
-        "prop_groups_attacked",
-    ]
-    writer_object.writerow(headers)
-
-    sim_results = []
-    for g in range(output.parameters.maxf):
-        sim_results.append(
-            [
-                g + 1,
-                output.total_deaths[g],
-                str(output.false_flights[g]),
-                str(output.true_flights[g]),
-                output.detected_pred_deaths[g] / max(1, output.total_deaths[g]),
-                output.nondetected_pred_deaths[g] / max(1, output.total_deaths[g]),
-                output.group_size[g].mean,
-                output.group_size[g].variance,
-                str(output.all_group_sizes[g]),
-                output.energetic_states[g].mean,
-                output.energetic_states[g].variance,
-                output.fitness[g].mean,
-                output.fitness[g].variance,
-                output.trait_values[g][0].mean,
-                output.trait_values[g][0].variance,
-                output.trait_values[g][1].mean,
-                output.trait_values[g][1].variance,
-                output.trait_values[g][2].mean,
-                output.trait_values[g][2].variance,
-                output.pred_catch_rate[g],
-                str(output.pred_catch_by_group_size[g]),
-                str(output.prop_groups_attacked[g]),
-            ]
-        )
-    writer_object.writerows(sim_results)
-
-    sim_file.close()
-
-
-def write_output(directory: str, output: SimOutput):
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-
-    output_path = build_output_path(output.parameters)
-    output_dir = f"{directory}/{output_path}"
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
-    unique_sim_id = uuid.uuid4()
-    write_sim_file(output_dir, unique_sim_id, output)
-
-
-def write_output_old(directory: str, sim_id: int, output: SimOutput):
-    results_file_name = f"{directory}/all.csv"
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-        write_new_all_file(results_file_name)
-
-    results_file = open(results_file_name, "a")
-    writer_object = csv.writer(results_file, lineterminator="\n")
-    writer_object.writerow(
-        [
-            sim_id,
-            output.parameters.Ni,
-            output.parameters.tf,
-            output.parameters.e_gain,
-            output.parameters.coef_false,
-            output.parameters.maxf,
-            output.parameters.prob_pred,
-            output.parameters.max_group_size,
-        ]
-    )
-    results_file.close()
-
-    write_sim_file(directory, sim_id, output)
-
-
-# TODO: change this function to pull from diff folders instead of all.cvs file
-def get_all_outputs(out_file_path: str, all_params: List[OutputParameters]):
-    pass
-
-
-def get_all_outputs_old(
-    out_file_path: str, all_params: List[OutputParameters]
-) -> List[List[pd.DataFrame]]:
-    sims: List[List[pd.DataFrame]] = [[] for _ in range(len(all_params))]
-    all_sims_file = open(f"{out_file_path}/all.csv", "r")
-    reader_object = csv.reader(all_sims_file, delimiter=",")
-    next(reader_object)
-    for row in reader_object:
-        (
-            sim_id,
-            Ni,
-            tf,
-            e_gain,
-            coef_false,
-            maxf,
-            prob_pred,
-            max_group_size,
-        ) = cast_data_types(row)
-        for i, params in enumerate(all_params):
-            if (
-                params.Ni == Ni
-                and params.tf == tf
-                and params.e_gain == e_gain
-                and params.coef_false == coef_false
-                and params.maxf == maxf
-                and params.prob_pred == prob_pred
-                and params.max_group_size == max_group_size
-            ):
-                df = pd.read_csv(f"{out_file_path}/{sim_id}.csv").to_numpy()
-                sims[i].append(df)
-
-    all_sims_file.close()
-    return sims
+    return params, param
 
 
 def process_results(
@@ -423,6 +284,9 @@ def mult_sim_analysis(
 ) -> None:
     all_outputs = get_all_outputs(out_file_path, all_params)
     all_results: List[MultResults] = []
+    import pdb
+
+    pdb.set_trace()
     for i, params in enumerate(all_params):
         sim_outputs = all_outputs[i]
         if len(sim_outputs) == 0:
@@ -439,6 +303,10 @@ def mult_sim_analysis(
 
         if "all_mean_trait_values" in plots:
             plot_all_mean_trait_values(results)
+
+    import pdb
+
+    pdb.set_trace()
 
     if param is not None:
         analysis_param = PARAM_FUNCS[param]
@@ -476,3 +344,33 @@ def mult_sim_analysis(
 
         if "prob_pred_by_lambda_per_timestep" in plots:
             plot_prob_pred_by_lambda_per_timestep(all_results, analysis_param)
+
+
+def run_mult_sim_analysis(params, param):
+    for param_set in params:
+        mult_sim_analysis(
+            out_file_path=OUT_FILE_DIR,
+            all_params=param_set,
+            plots=[
+                # "flight_freq_by_group_size",
+                # "fitness",
+                # "all_mean_trait_values",
+                # "avg_flight",
+                # "detected_nondetected_pred_deaths",
+                # "total_deaths_per_gen",
+                # "final_fitness",
+                # "final_trait_values",
+                "final_flight_freq",
+                # "kills_per_visits_per_gen",
+                # "final_kills_per_visits",
+                "traits_by_gen",
+                # "prob_pred_by_lambda",
+                # "prob_pred_by_lambda_per_timestep",
+            ],
+            param=param,
+        )
+
+
+if __name__ == "__main__":
+    params, param = get_params_to_analyze("lambda")
+    run_mult_sim_analysis(params, param)

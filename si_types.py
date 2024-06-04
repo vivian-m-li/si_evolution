@@ -6,8 +6,12 @@ from typing import List, Dict, Optional, Tuple, Callable
 class Parameters:
     Ni: int = 100  # number of individuals
     tf: int = 30  # time steps for a given generation
-    e_gain: int = 1  # energy units gained each time step in which the ith individual does not flee
-    coef_false: float = 0.2  # coefficient that determines the prob of a false alarm (a smaller value than f_pred)
+    e_gain: float = (
+        1  # energy units gained each time step in which the ith individual does not flee
+    )
+    coef_false: float = (
+        0.2  # coefficient that determines the prob of a false alarm (a smaller value than f_pred)
+    )
     maxf: int = 500  # number of generations to run the model through
     prob_pred: float = 0.2
     max_group_size: int = 25
