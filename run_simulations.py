@@ -1,7 +1,6 @@
 import multiprocessing
 import time
 import datetime
-from multiprocessing import Pool
 from si_evolution import evo_fun
 from constants import OUT_FILE_DIR
 from si_types import Parameters
@@ -54,7 +53,7 @@ SIM_PARAMS = [
 def run_si_evolution_sims():
     start = time.time()
     with multiprocessing.Manager() as manager:
-        p = Pool(multiprocessing.cpu_count())
+        p = multiprocessing.Pool(multiprocessing.cpu_count())
         args = []
         for params in SIM_PARAMS:
             for _ in range(NUM_TRIALS):

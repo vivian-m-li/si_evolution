@@ -1,3 +1,4 @@
+import multiprocessing
 import pandas as pd
 import numpy as np
 from plot import *
@@ -5,6 +6,7 @@ from si_types import *
 from constants import *
 from helper import *
 from collections import defaultdict
+from profiler import profile, print_stats
 from typing import Optional, List, DefaultDict
 
 
@@ -91,7 +93,6 @@ def process_results(
     sim_outputs: List[pd.DataFrame], params: OutputParameters
 ) -> Results:
     num_generations = params.maxf
-
     freq_false_flight_by_group_size: List[DefaultDict[int, List[float]]] = []
     freq_true_flight_by_group_size: List[DefaultDict[int, List[float]]] = []
     freq_detected_pred_deaths_all: List[float] = []
@@ -275,6 +276,7 @@ def process_results(
     )
 
 
+@profile
 def mult_sim_analysis(
     *,
     out_file_path: str,
@@ -337,6 +339,7 @@ def mult_sim_analysis(
 
         if "prob_pred_by_lambda_per_timestep" in plots:
             plot_prob_pred_by_lambda_per_timestep(all_results, analysis_param)
+    # print_stats()
 
 
 def run_mult_sim_analysis(params, param):

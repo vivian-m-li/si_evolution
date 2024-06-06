@@ -326,3 +326,16 @@ def get_all_outputs_old(
 
     all_sims_file.close()
     return sims
+
+
+def calc_trait_stability(trait_values: List[List[Stat]]) -> Tuple[bool, float]:
+    steady_state_threshold = 0.1
+    last_fifty_vals = trait_values[-50:]
+    diff = max(last_fifty_vals) - min(last_fifty_vals)
+    return abs(diff) <= steady_state_threshold, diff
+
+
+def filter_nan(x_vals: List[float], y_vals: List[float]) -> List[float]:
+    filtered_x_y = [(x, y) for x, y in zip(x_vals, y_vals) if not np.isnan(y)]
+    filtered_x, filtered_y = zip(*filtered_x_y) if filtered_x_y else ([], [])
+    return list(filtered_x), list(filtered_y)

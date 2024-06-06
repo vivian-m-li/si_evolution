@@ -3,9 +3,11 @@ import matplotlib.gridspec as gridspec
 from matplotlib.lines import Line2D
 import numpy as np
 import pandas as pd
+from scipy.stats import linregress
 from collections import defaultdict
 from si_types import *
 from constants import *
+from helper import *
 from typing import Union
 
 
@@ -357,6 +359,15 @@ def plot_final_flight_freq(results: List[MultResults], param: AnalysisParam) -> 
         freq_false_flights.append(data[x_val]["false_flights"])
         freq_true_flights.append(data[x_val]["true_flights"])
 
+    false_best_fit = linregress(filter_nan(x_vals, freq_false_flights))
+    true_best_fit = linregress(filter_nan(x_vals, freq_true_flights))
+    print(
+        f"Freq false flights={round(false_best_fit.slope, 2)} + {round(false_best_fit.intercept, 2)}"
+    )
+    print(
+        f"Freq true flights={round(true_best_fit.slope, 2)} + {round(true_best_fit.intercept, 2)}"
+    )
+
     for i, x_val in enumerate(x_vals):
         if param.label_func:
             plt.annotate(
@@ -474,14 +485,18 @@ def plot_traits_by_gen(results: List[MultResults], param: AnalysisParam) -> None
         x = list(range(1, results[0].params.maxf + 1))
         for j, r in enumerate(results):
             color = get_color(j, len(results))
+            means = [y.mean for y in r.results.trait_values[i]]
             plt.plot(
                 x,
-                [y.mean for y in r.results.trait_values[i]],
+                means,
                 color=color,
             )
             legend_elements.append(
                 Line2D([0], [0], color=color, label=param.func(r.params, r.results))
             )
+            is_stable, diff = calc_trait_stability(means)
+            if not is_stable:
+                print("not stable", r.params, diff)
 
         ax.set_ylabel(trait)
         if i == 0:
