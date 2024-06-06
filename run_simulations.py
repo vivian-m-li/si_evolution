@@ -47,6 +47,13 @@ SIM_PARAMS = [
     Parameters(prob_pred=2, e_gain=0.5),
     Parameters(prob_pred=2, e_gain=1.5),
     Parameters(prob_pred=2, e_gain=2),
+    # varying mutation
+    Parameters(prob_pred=0.2, mutation_max=0.1),
+    Parameters(prob_pred=0.2, mutation_max=0.25),
+    Parameters(prob_pred=0.2, mutation_max=0.5),
+    Parameters(prob_pred=2, mutation_max=0.1),
+    Parameters(prob_pred=2, mutation_max=0.25),
+    Parameters(prob_pred=2, mutation_max=0.5),
 ]
 
 

@@ -242,7 +242,19 @@ def evo_fun(
         surv_df = pd.DataFrame(survive)
         surv_df["index"] = range(len(surv_df["fit"]))
         f_index = np.random.choice(surv_df["index"], Ni, p=surv_df["fit"])
-        f_all.append(survive.iloc[f_index, 1:4])
+        gen_final_traits = survive.iloc[f_index, 1:4].copy()
+        mutation_scaled = {
+            "f_pred": (params.mutation_max, [0, 1]),
+            "s_faith": (params.mutation_max / 2, [0, 0.5]),
+            "s_dd": (params.mutation_max * 4, [-2, 2]),
+        }
+        for trait, (mutation_max, bounds) in mutation_scaled.items():
+            noise = np.random.normal(0, mutation_max / 3, gen_final_traits[trait].shape)
+            gen_final_traits[trait] += noise
+            gen_final_traits[trait] = np.clip(
+                gen_final_traits[trait], bounds[0], bounds[1]
+            )
+        f_all.append(gen_final_traits)
 
         for lst, op in [(trait_mean, np.mean), (trait_sd, np.std), (trait_var, np.var)]:
             lst[f, :] = [

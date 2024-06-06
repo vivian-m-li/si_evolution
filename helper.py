@@ -126,6 +126,7 @@ def build_output_path(params: Parameters):
         params.maxf,
         params.prob_pred,
         params.max_group_size,
+        params.mutation_max,
     ]
     param_lst = [str(x) for x in param_lst]
     return "_".join(param_lst)
@@ -158,6 +159,7 @@ def get_sim_id(file_name: str) -> int:
     return sim_id
 
 
+# DEPRECATED
 def write_new_all_file(file_name):
     results_file = open(file_name, "w")
     writer_object = csv.writer(results_file, lineterminator="\n")
@@ -250,6 +252,7 @@ def write_output(directory: str, output: SimOutput):
     write_sim_file(output_dir, unique_sim_id, output)
 
 
+# DEPRECATED
 def write_output_old(directory: str, sim_id: int, output: SimOutput):
     results_file_name = f"{directory}/all.csv"
     if not os.path.exists(directory):
@@ -293,6 +296,7 @@ def get_all_outputs(
     return sims
 
 
+# DEPRECATED
 def get_all_outputs_old(
     out_file_path: str, all_params: List[OutputParameters]
 ) -> List[List[pd.DataFrame]]:
