@@ -483,20 +483,31 @@ def plot_traits_by_gen(results: List[MultResults], param: AnalysisParam) -> None
 
         legend_elements = []
         x = list(range(1, results[0].params.maxf + 1))
+
+        plot_data = []
         for j, r in enumerate(results):
             color = get_color(j, len(results))
-            means = [y.mean for y in r.results.trait_values[i]]
-            plt.plot(
-                x,
-                means,
-                color=color,
-            )
             legend_elements.append(
                 Line2D([0], [0], color=color, label=param.func(r.params, r.results))
             )
+            means = [y.mean for y in r.results.trait_values[i]]
+            plot_data.append(means)
+            ci_lower = [y.confidence_interval[0] for y in r.results.trait_values[i]]
+            ci_upper = [y.confidence_interval[1] for y in r.results.trait_values[i]]
+            plt.fill_between(x, ci_lower, ci_upper, color=color, alpha=0.3)
+
             is_stable, diff = calc_trait_stability(means)
             if not is_stable:
                 print("not stable", r.params, diff)
+
+        # ensures lines show up in front of confidence intervals
+        for j, r in enumerate(results):
+            color = get_color(j, len(results))
+            plt.plot(
+                x,
+                plot_data[j],
+                color=color,
+            )
 
         ax.set_ylabel(trait)
         if i == 0:
@@ -510,60 +521,64 @@ def plot_traits_by_gen(results: List[MultResults], param: AnalysisParam) -> None
     plt.tight_layout()
     plt.savefig(f"{PLOT_FILE_DIR}/traits_by_gen_{param.label}.png")
 
-    # plt.figure(figsize=(10, 6))
-    # legend_elements = []
-    # x = list(range(1, results[0].params.maxf + 1))
-    # for j, r in enumerate(results):
-    #     color = get_color(j, len(results))
-    #     plt.plot(
-    #         x,
-    #         [y.mean for y in r.results.trait_values[0]],
-    #         color=color,
-    #     )
-    #     legend_elements.append(
-    #         Line2D([0], [0], color=color, label=param.func(r.params, r.results))
-    #     )
 
-    # plt.ylabel("jumpiness", fontsize=16)
-    # plt.legend(
-    #     title=param.label,
-    #     handles=legend_elements,
-    #     loc="upper right",
-    # )
-    # plt.suptitle(f"Mean Trait Values Across Generations", fontsize=18)
-    # plt.xlabel("Generation", fontsize=16)
-    # plt.savefig(f"{PLOT_FILE_DIR}/jumpiness_{param.label}.png")
+def plot_traits_by_gen_separated(
+    results: List[MultResults], param: AnalysisParam
+) -> None:
+    plt.figure(figsize=(10, 6))
+    legend_elements = []
+    x = list(range(1, results[0].params.maxf + 1))
+    for j, r in enumerate(results):
+        color = get_color(j, len(results))
+        plt.plot(
+            x,
+            [y.mean for y in r.results.trait_values[0]],
+            color=color,
+        )
+        legend_elements.append(
+            Line2D([0], [0], color=color, label=param.func(r.params, r.results))
+        )
 
-    # plt.figure(figsize=(8, 10))
-    # gs = gridspec.GridSpec(2, 1, height_ratios=[1, 1])
-    # traits = ["sociality", "density dependence in sociality"]
-    # for i, trait in enumerate(traits):
-    #     ax = plt.subplot(gs[i, 0])
+    plt.ylabel("jumpiness", fontsize=16)
+    plt.legend(
+        title=param.label,
+        handles=legend_elements,
+        loc="upper right",
+    )
+    plt.suptitle(f"Mean Trait Values Across Generations", fontsize=18)
+    plt.xlabel("Generation", fontsize=16)
+    plt.savefig(f"{PLOT_FILE_DIR}/jumpiness_{param.label}.png")
 
-    #     legend_elements = []
-    #     x = list(range(1, results[0].params.maxf + 1))
-    #     for j, r in enumerate(results):
-    #         color = get_color(j, len(results))
-    #         plt.plot(
-    #             x,
-    #             [y.mean for y in r.results.trait_values[i + 1]],
-    #             color=color,
-    #         )
-    #         legend_elements.append(
-    #             Line2D([0], [0], color=color, label=param.func(r.params, r.results))
-    #         )
+    plt.figure(figsize=(8, 10))
+    gs = gridspec.GridSpec(2, 1, height_ratios=[1, 1])
+    traits = ["sociality", "density dependence in sociality"]
+    for i, trait in enumerate(traits):
+        ax = plt.subplot(gs[i, 0])
 
-    #     ax.set_ylabel(trait, fontsize=16)
-    #     if i == 0:
-    #         ax.legend(
-    #             title=param.label,
-    #             handles=legend_elements,
-    #             loc="upper right",
-    #         )
-    # plt.suptitle(f"Mean Trait Values Across Generations", fontsize=18)
-    # plt.xlabel("Generation", fontsize=16)
-    # plt.tight_layout()
-    # plt.savefig(f"{PLOT_FILE_DIR}/sociality_sdd_{param.label}.png")
+        legend_elements = []
+        x = list(range(1, results[0].params.maxf + 1))
+        for j, r in enumerate(results):
+            color = get_color(j, len(results))
+            plt.plot(
+                x,
+                [y.mean for y in r.results.trait_values[i + 1]],
+                color=color,
+            )
+            legend_elements.append(
+                Line2D([0], [0], color=color, label=param.func(r.params, r.results))
+            )
+
+        ax.set_ylabel(trait, fontsize=16)
+        if i == 0:
+            ax.legend(
+                title=param.label,
+                handles=legend_elements,
+                loc="upper right",
+            )
+    plt.suptitle(f"Mean Trait Values Across Generations", fontsize=18)
+    plt.xlabel("Generation", fontsize=16)
+    plt.tight_layout()
+    plt.savefig(f"{PLOT_FILE_DIR}/sociality_sdd_{param.label}.png")
 
 
 def plot_prob_pred_by_lambda(results: List[MultResults], param: AnalysisParam) -> None:

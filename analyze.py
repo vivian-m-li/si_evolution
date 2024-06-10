@@ -10,7 +10,7 @@ from profiler import profile, print_stats
 from typing import Optional, List, DefaultDict
 
 
-def get_params_to_analyze(analysis):
+def get_params_to_analyze(analysis: str):
     params = []
     param = ""
 
@@ -85,6 +85,13 @@ def get_params_to_analyze(analysis):
             for e_gain in [0.5, 1, 1.5, 2]:
                 params[-1].append(OutputParameters(prob_pred=prob_pred, e_gain=e_gain))
         return params, "e_gain"
+
+    if analysis == "mutation":
+        for mutation_max in [0.1, 0.25, 0.5]:
+            params.append(
+                OutputParameters(prob_pred=0.2, maxf=1000, mutation_max=mutation_max)
+            )
+        return [params], "mutation"
 
     return params, param
 
@@ -282,7 +289,7 @@ def mult_sim_analysis(
     out_file_path: str,
     all_params: List[OutputParameters],
     plots: List[str],
-    param: Optional[str] = None,
+    param: str,
 ) -> None:
     all_outputs = get_all_outputs(out_file_path, all_params)
     all_results: List[MultResults] = []
@@ -342,7 +349,7 @@ def mult_sim_analysis(
     # print_stats()
 
 
-def run_mult_sim_analysis(params, param):
+def run_mult_sim_analysis(params: List[List[OutputParameters]], param: str):
     for param_set in params:
         mult_sim_analysis(
             out_file_path=OUT_FILE_DIR,
@@ -368,5 +375,5 @@ def run_mult_sim_analysis(params, param):
 
 
 if __name__ == "__main__":
-    params, param = get_params_to_analyze("lambda")
+    params, param = get_params_to_analyze("mutation")
     run_mult_sim_analysis(params, param)
