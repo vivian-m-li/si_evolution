@@ -86,13 +86,6 @@ def get_params_to_analyze(analysis: str):
                 params[-1].append(OutputParameters(prob_pred=prob_pred, e_gain=e_gain))
         return params, "e_gain"
 
-    if analysis == "mutation":
-        for mutation_max in [0.1, 0.25, 0.5]:
-            params.append(
-                OutputParameters(prob_pred=0.2, maxf=1000, mutation_max=mutation_max)
-            )
-        return [params], "mutation"
-
     return params, param
 
 
@@ -375,5 +368,5 @@ def run_mult_sim_analysis(params: List[List[OutputParameters]], param: str):
 
 
 if __name__ == "__main__":
-    params, param = get_params_to_analyze("mutation")
+    params, param = get_params_to_analyze("lambda")
     run_mult_sim_analysis(params, param)

@@ -15,7 +15,6 @@ class Parameters:
     maxf: int = 500  # number of generations to run the model through
     prob_pred: float = 0.2
     max_group_size: int = 25
-    mutation_max: float = 0
 
 
 @dataclass

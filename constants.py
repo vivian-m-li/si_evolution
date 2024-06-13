@@ -7,6 +7,12 @@ PLOT_FILE_DIR = "plots"
 
 DEFAULT_PARAMS = Parameters()
 
+TRAIT_BOUNDS = {
+    "f_pred": [0, 1],
+    "s_faith": [0, 0.5],
+    "s_dd": [-2, 2],
+}
+
 COLOR_MAP = [x for y in [cm.Set2.colors, cm.Set1.colors] for x in y]
 
 PARAM_FUNCS = {
@@ -42,8 +48,5 @@ PARAM_FUNCS = {
     "lambda": AnalysisParam(
         label="Lambda",
         func=lambda p, r=None: p.prob_pred,
-    ),
-    "mutation": AnalysisParam(
-        label="Max Mutation", func=lambda p, r=None: p.mutation_max
     ),
 }

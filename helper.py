@@ -126,7 +126,6 @@ def build_output_path(params: Parameters):
         params.maxf,
         params.prob_pred,
         params.max_group_size,
-        params.mutation_max,
     ]
     param_lst = [str(x) for x in param_lst]
     return "_".join(param_lst)
