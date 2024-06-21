@@ -135,6 +135,43 @@ def plot_fitness(r: Results) -> None:
     plt.savefig(f"{PLOT_FILE_DIR}/fitness.png")
 
 
+def plot_fitness_by_gen(results: List[MultResults], param: AnalysisParam) -> None:
+    legend_elements = []
+    x = list(range(1, results[0].params.maxf + 1))
+
+    plot_data = []
+    for j, r in enumerate(results):
+        color = get_color(j, len(results))
+        legend_elements.append(
+            Line2D([0], [0], color=color, label=param.func(r.params, r.results))
+        )
+        means = [y.mean for y in r.results.fitness_stat]
+        plot_data.append(means)
+        ci_lower = [y.confidence_interval[0] for y in r.results.fitness_stat]
+        ci_upper = [y.confidence_interval[1] for y in r.results.fitness_stat]
+        plt.fill_between(x, ci_lower, ci_upper, color=color, alpha=0.3)
+
+    # ensures lines show up in front of confidence intervals
+    for j, r in enumerate(results):
+        color = get_color(j, len(results))
+        plt.plot(
+            x,
+            plot_data[j],
+            color=color,
+        )
+
+    plt.ylabel("Fitness")
+    plt.legend(
+        title=param.label,
+        handles=legend_elements,
+        loc="upper right",
+    )
+    plt.title(f"Mean Fitness Across Generations at Varying {param.label}")
+    plt.xlabel("Generation")
+    plt.tight_layout()
+    plt.savefig(f"{PLOT_FILE_DIR}/fitness_by_gen_{param.label}.png")
+
+
 def plot_avg_flight(
     results: List[Tuple[Parameters, List[float]]],
     flight_type: str,

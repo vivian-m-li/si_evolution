@@ -316,6 +316,9 @@ def mult_sim_analysis(
         if "total_deaths_per_gen" in plots:
             plot_total_deaths_per_gen(all_results, analysis_param)
 
+        if "fitness_by_gen" in plots:
+            plot_fitness_by_gen(all_results, analysis_param)
+
         if "final_fitness" in plots:
             plot_final_fitness(all_results, analysis_param)
 
@@ -354,6 +357,7 @@ def run_mult_sim_analysis(params: List[List[OutputParameters]], param: str):
                 # "avg_flight",
                 # "detected_nondetected_pred_deaths",
                 # "total_deaths_per_gen",
+                "fitness_by_gen"
                 # "final_fitness",
                 # "final_trait_values",
                 "final_flight_freq",

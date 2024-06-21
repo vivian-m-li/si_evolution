@@ -244,6 +244,7 @@ def evo_fun(
         f_index = np.random.choice(surv_df["index"], Ni, p=surv_df["fit"])
         gen_final_traits = survive.iloc[f_index, 1:4].copy()
 
+        # add a little bit of noise as mutation
         for trait, bounds in TRAIT_BOUNDS.items():
             sd = 0.04 * abs(np.mean(gen_final_traits[trait]))
             noise = np.random.normal(0, sd, gen_final_traits[trait].shape)
