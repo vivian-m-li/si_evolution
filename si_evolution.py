@@ -245,13 +245,10 @@ def evo_fun(
         gen_final_traits = survive.iloc[f_index, 1:4].copy()
 
         # add a little bit of noise as mutation
-        for trait, bounds in TRAIT_BOUNDS.items():
-            sd = 0.04 * abs(np.mean(gen_final_traits[trait]))
+        for trait in gen_final_traits.columns:
+            sd = 0.02 * abs(np.mean(gen_final_traits[trait]))
             noise = np.random.normal(0, sd, gen_final_traits[trait].shape)
             gen_final_traits[trait] += noise
-            gen_final_traits[trait] = np.clip(
-                gen_final_traits[trait], bounds[0], bounds[1]
-            )
         f_all.append(gen_final_traits)
 
         for lst, op in [(trait_mean, np.mean), (trait_sd, np.std), (trait_var, np.var)]:
