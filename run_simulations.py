@@ -47,6 +47,55 @@ SIM_PARAMS = [
     Parameters(prob_pred=2, e_gain=0.5),
     Parameters(prob_pred=2, e_gain=1.5),
     Parameters(prob_pred=2, e_gain=2),
+    # increase maxf
+    Parameters(prob_pred=0, maxf=1000),
+    Parameters(prob_pred=0.4, maxf=1000),
+    Parameters(prob_pred=0.8, maxf=1000),
+    Parameters(prob_pred=1.2, maxf=1000),
+    Parameters(prob_pred=1.6, maxf=1000),
+    Parameters(prob_pred=2, maxf=1000),
+    # parameter sensitivity testing, low e_gain
+    Parameters(prob_pred=0, e_gain=0.5),
+    Parameters(prob_pred=0.4, e_gain=0.5),
+    Parameters(prob_pred=0.8, e_gain=0.5),
+    Parameters(prob_pred=1.2, e_gain=0.5),
+    Parameters(prob_pred=1.6, e_gain=0.5),
+    Parameters(prob_pred=2, e_gain=0.5),
+    # parameter sensitivity testing, high e_gain
+    Parameters(prob_pred=0, e_gain=2.0),
+    Parameters(prob_pred=0.4, e_gain=2.0),
+    Parameters(prob_pred=0.8, e_gain=2.0),
+    Parameters(prob_pred=1.2, e_gain=2.0),
+    Parameters(prob_pred=1.6, e_gain=2.0),
+    Parameters(prob_pred=2, e_gain=2.0),
+    # parameter sensitivity testing, low max_group_size
+    Parameters(prob_pred=0, max_group_size=10),
+    Parameters(prob_pred=0.4, max_group_size=10),
+    Parameters(prob_pred=0.8, max_group_size=10),
+    Parameters(prob_pred=1.2, max_group_size=10),
+    Parameters(prob_pred=1.6, max_group_size=10),
+    Parameters(prob_pred=2, max_group_size=10),
+    # parameter sensitivity testing, high max_group_size
+    Parameters(prob_pred=0, max_group_size=50),
+    Parameters(prob_pred=0.4, max_group_size=50),
+    Parameters(prob_pred=0.8, max_group_size=50),
+    Parameters(prob_pred=1.2, max_group_size=50),
+    Parameters(prob_pred=1.6, max_group_size=50),
+    Parameters(prob_pred=2, max_group_size=50),
+    # parameter sensitivity testing, low coef_false
+    Parameters(prob_pred=0, coef_false=0.1),
+    Parameters(prob_pred=0.4, coef_false=0.1),
+    Parameters(prob_pred=0.8, coef_false=0.1),
+    Parameters(prob_pred=1.2, coef_false=0.1),
+    Parameters(prob_pred=1.6, coef_false=0.1),
+    Parameters(prob_pred=2, coef_false=0.1),
+    # parameter sensitivity testing, high coef_false
+    Parameters(prob_pred=0, coef_false=0.3),
+    Parameters(prob_pred=0.4, coef_false=0.3),
+    Parameters(prob_pred=0.8, coef_false=0.3),
+    Parameters(prob_pred=1.2, coef_false=0.3),
+    Parameters(prob_pred=1.6, coef_false=0.3),
+    Parameters(prob_pred=2, coef_false=0.3),
 ]
 
 

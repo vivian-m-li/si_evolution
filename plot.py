@@ -399,10 +399,10 @@ def plot_final_flight_freq(results: List[MultResults], param: AnalysisParam) -> 
     false_best_fit = linregress(filter_nan(x_vals, freq_false_flights))
     true_best_fit = linregress(filter_nan(x_vals, freq_true_flights))
     print(
-        f"Freq false flights={round(false_best_fit.slope, 2)} + {round(false_best_fit.intercept, 2)}"
+        f"Freq false flights={round(false_best_fit.slope, 2)}x + {round(false_best_fit.intercept, 2)}"
     )
     print(
-        f"Freq true flights={round(true_best_fit.slope, 2)} + {round(true_best_fit.intercept, 2)}"
+        f"Freq true flights={round(true_best_fit.slope, 2)}x + {round(true_best_fit.intercept, 2)}"
     )
 
     for i, x_val in enumerate(x_vals):

@@ -12,6 +12,7 @@ from collections import defaultdict
 from typing import List, DefaultDict, Set
 
 warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
+pd.set_option("display.max_rows", None)
 
 
 def evo_fun(
@@ -33,8 +34,6 @@ def evo_fun(
     f_pred = np.random.uniform(0, 1, Ni)
     s_faith = np.random.uniform(0, 0.5, Ni)
     s_dd = np.random.uniform(-2, 2, Ni)
-    fit = np.full((Ni, tf), np.nan)
-    fit[:, 0] = 1
 
     # Initialize data structures for storing outputs per timestep/generation
     attacks_all = []
@@ -61,13 +60,14 @@ def evo_fun(
             s_faith = np.random.uniform(0, 0.5, Ni)
             s_dd = np.random.uniform(-2, 2, Ni)
         else:
-            f_pred = f_all[f - 1]["f_pred"].values
-            s_faith = f_all[f - 1]["s_faith"].values
-            s_dd = f_all[f - 1]["s_dd"].values
+            f_pred = f_all[-1]["f_pred"].values
+            s_faith = f_all[-1]["s_faith"].values
+            s_dd = f_all[-1]["s_dd"].values
         f_false = coef_false * f_pred
+        fit = np.full((Ni, tf), np.nan)
+        fit[:, 0] = 1
 
         # For each time step, the population gets reassembled into groups based on a uniform distribution of group sizes. Then, each group is potentially subjected to a predator attack (based on a background predation level, probability set to 0.2 by default below).
-
         group_sizes: List[int] = []
         false_flights_by_group_size: DefaultDict[int, List[float]] = defaultdict(list)
         true_flights_by_group_size: DefaultDict[int, List[float]] = defaultdict(list)
@@ -113,7 +113,7 @@ def evo_fun(
                     if prev_flee > 0:
                         p_flee_s = (
                             prev_flee * s_faith[indiv_idx]
-                            + (ddensity - prev_flee) / max_group_size * s_dd[indiv_idx]
+                            + (ddensity - prev_flee) / 25 * s_dd[indiv_idx]
                         )
                         p_flee_s = min(1, p_flee_s)
                         p_flee_s = max(0, p_flee_s)
@@ -131,7 +131,7 @@ def evo_fun(
                         p_detect_s = (
                             prev_detect * s_faith[indiv_idx]
                             + (ddensity - prev_flee - prev_detect)
-                            / max_group_size
+                            / 25
                             * s_dd[indiv_idx]
                         )
                         p_detect_s = min(1, p_detect_s)
@@ -242,7 +242,7 @@ def evo_fun(
         surv_df = pd.DataFrame(survive)
         surv_df["index"] = range(len(surv_df["fit"]))
         f_index = np.random.choice(surv_df["index"], Ni, p=surv_df["fit"])
-        gen_final_traits = survive.iloc[f_index, 1:4].copy()
+        gen_final_traits = surv_df.iloc[f_index, 1:4].copy()
 
         # add a little bit of noise as mutation
         for trait in gen_final_traits.columns:
@@ -253,9 +253,9 @@ def evo_fun(
 
         for lst, op in [(trait_mean, np.mean), (trait_sd, np.std), (trait_var, np.var)]:
             lst[f, :] = [
-                op(survive["f_pred"]),
-                op(survive["s_faith"]),
-                op(survive["s_dd"]),
+                op(surv_df["f_pred"]),
+                op(surv_df["s_faith"]),
+                op(surv_df["s_dd"]),
             ]
         output.trait_values.append(
             [

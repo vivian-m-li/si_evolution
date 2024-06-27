@@ -6,84 +6,58 @@ from si_types import *
 from constants import *
 from helper import *
 from collections import defaultdict
+from copy import copy
 from profiler import profile, print_stats
 from typing import Optional, List, DefaultDict
 
 
-def get_params_to_analyze(analysis: str):
+def get_params_to_analyze(analysis: str, default_params: OutputParameters):
     params = []
     param = ""
 
     if analysis == "pop_size":
         for max_group_size in [15, 25, 50]:
             for Ni in [100, 500]:
-                params.append(
-                    OutputParameters(
-                        max_group_size=max_group_size,
-                        Ni=Ni,
-                        group_bin_size=int(max_group_size / 5),
-                    )
-                )
+                output_params = copy(default_params)
+                output_params.max_group_size = max_group_size
+                output_params.Ni = Ni
+                output_params.group_bin_size = int(max_group_size / 5)
+                params.append(output_params)
         return [params], "pop_size"
 
     if analysis == "group_size":
         for prob_pred in [0.2, 2]:
             params.append([])
             for max_group_size in [5, 10, 15, 20, 25, 30, 40, 50, 100]:
-                params[-1].append(
-                    OutputParameters(
-                        prob_pred=prob_pred,
-                        max_group_size=max_group_size,
-                        group_bin_size=int(max_group_size / 5),
-                    )
-                )
+                output_params = copy(default_params)
+                output_params.prob_pred = prob_pred
+                output_params.max_group_size = max_group_size
+                output_params.group_bin_size = int(max_group_size / 5)
+                params[-1].append(output_params)
         return params, "avg_group_size"
-
-    if analysis == "pred":
-        for prob_pred in [
-            0,
-            0.002,
-            0.005,
-            0.01,
-            0.02,
-            0.04,
-            0.06,
-            0.08,
-            0.1,
-            0.12,
-            0.14,
-            0.16,
-            0.18,
-            0.2,
-        ]:
-            params.append(OutputParameters(prob_pred=prob_pred))
-        return [params], "prob_pred"
 
     if analysis == "lambda":
         for p_lambda in [
             0,
-            0.02,
-            0.05,
-            0.1,
-            0.2,
             0.4,
-            0.6,
             0.8,
-            1,
             1.2,
-            1.4,
             1.6,
-            1.8,
             2.0,
         ]:
-            params.append(OutputParameters(prob_pred=p_lambda))
+            output_params = copy(default_params)
+            output_params.prob_pred = p_lambda
+            params.append(output_params)
         return [params], "lambda"
 
     if analysis == "e_gain":
         for prob_pred in [0.2, 2.0]:
             params.append([])
             for e_gain in [0.5, 1, 1.5, 2]:
-                params[-1].append(OutputParameters(prob_pred=prob_pred, e_gain=e_gain))
+                output_params = copy(default_params)
+                output_params.prob_pred = prob_pred
+                output_params.e_gain = e_gain
+                params[-1].append(output_params)
         return params, "e_gain"
 
     return params, param
@@ -357,13 +331,13 @@ def run_mult_sim_analysis(params: List[List[OutputParameters]], param: str):
                 # "avg_flight",
                 # "detected_nondetected_pred_deaths",
                 # "total_deaths_per_gen",
-                "fitness_by_gen"
+                # "fitness_by_gen",
                 # "final_fitness",
                 # "final_trait_values",
                 "final_flight_freq",
                 # "kills_per_visits_per_gen",
                 # "final_kills_per_visits",
-                "traits_by_gen",
+                # "traits_by_gen",
                 # "prob_pred_by_lambda",
                 # "prob_pred_by_lambda_per_timestep",
             ],
@@ -372,5 +346,11 @@ def run_mult_sim_analysis(params: List[List[OutputParameters]], param: str):
 
 
 if __name__ == "__main__":
-    params, param = get_params_to_analyze("lambda")
+    params, param = get_params_to_analyze("lambda", OutputParameters())
+    # e_gain=0.5
+    # e_gain=2
+    # max_group_size=10
+    # max_group_size=50
+    # coef_false=0.1
+    # coef_false=0.3
     run_mult_sim_analysis(params, param)
