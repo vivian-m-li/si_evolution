@@ -1,4 +1,3 @@
-import multiprocessing
 import pandas as pd
 import numpy as np
 from plot import *
@@ -250,6 +249,18 @@ def process_results(
     )
 
 
+def single_sim_trait_vals(*, out_file_path: str, params: OutputParameters):
+    outputs = get_all_outputs(out_file_path, [params])[0]
+    trait_vals = []
+    for sim in outputs:
+        f_pred = np.mean(np.mean(sim[-50:, 13]))
+        s_faith = np.mean(sim[-50:, 15])
+        s_dd = np.mean(sim[-50:, 17])
+        trait_vals.append([f_pred, s_faith, s_dd])
+    trait_vals = np.array(trait_vals)
+    plot_traits_scatter(trait_vals)
+
+
 @profile
 def mult_sim_analysis(
     *,
@@ -331,13 +342,13 @@ def run_mult_sim_analysis(params: List[List[OutputParameters]], param: str):
                 # "avg_flight",
                 # "detected_nondetected_pred_deaths",
                 # "total_deaths_per_gen",
-                # "fitness_by_gen",
+                "fitness_by_gen",
                 # "final_fitness",
                 # "final_trait_values",
-                "final_flight_freq",
+                # "final_flight_freq",
                 # "kills_per_visits_per_gen",
                 # "final_kills_per_visits",
-                # "traits_by_gen",
+                "traits_by_gen",
                 # "prob_pred_by_lambda",
                 # "prob_pred_by_lambda_per_timestep",
             ],
@@ -346,11 +357,15 @@ def run_mult_sim_analysis(params: List[List[OutputParameters]], param: str):
 
 
 if __name__ == "__main__":
-    params, param = get_params_to_analyze("lambda", OutputParameters())
+    # params, param = get_params_to_analyze("lambda", OutputParameters(maxf=4000))
     # e_gain=0.5
     # e_gain=2
     # max_group_size=10
     # max_group_size=50
     # coef_false=0.1
     # coef_false=0.3
-    run_mult_sim_analysis(params, param)
+    # run_mult_sim_analysis(params, param)
+
+    single_sim_trait_vals(
+        out_file_path=OUT_FILE_DIR, params=OutputParameters(prob_pred=2, maxf=4000)
+    )

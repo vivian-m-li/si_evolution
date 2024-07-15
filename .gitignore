@@ -1,7 +1,6 @@
 __pycache__/
 .lintr
-results
-old_results
 plots
 notes
 copy_files.sh
+*results

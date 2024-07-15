@@ -678,3 +678,23 @@ def plot_prob_pred_by_lambda_per_timestep(
     plt.ylim(-0.025, 1.025)
     plt.ylabel(f"% of Groups Attacked")
     plt.savefig(f"{PLOT_FILE_DIR}/prob_pred_by_lambda_per_timestep_{param.label}.png")
+
+
+def plot_trait_hist(trait: str, values: List[float]):
+    plt.figure(figsize=(10, 6))
+    plt.hist(values, bins=15)
+    plt.title(f"Steady State Values for {trait}")
+    plt.xlabel("Trait Value")
+    plt.ylabel("Count")
+    plt.show()
+
+
+def plot_traits_scatter(trait_values: List[List[float]]):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection="3d")
+    ax.scatter(trait_values[:, 0], trait_values[:, 1], trait_values[:, 2])
+
+    ax.set_xlabel("Jumpiness")
+    ax.set_ylabel("Sociality")
+    ax.set_zlabel("Density Dependence in Sociality")
+    plt.show()
