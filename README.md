@@ -1,6 +1,7 @@
 # si_evolution
+This project analyzes the evolution of social behavior in foraging populations using an agent-based model.
 
-To run the simulations:
+# Running the simulations
 1. Fill in `sim_params` in run_simulations.py
 2. Run analyze.ipynb to plot
 
